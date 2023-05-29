@@ -1,0 +1,10 @@
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 10000 --end_sample_id 10500 --device 0 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 10500 --end_sample_id 11000 --device 0 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 11000 --end_sample_id 11500 --device 1 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 11500 --end_sample_id 12000 --device 1 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 12000 --end_sample_id 12500 --device 2 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 12500 --end_sample_id 13000 --device 2 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 13000 --end_sample_id 13500 --device 3 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 13500 --end_sample_id 14000 --device 3 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 14000 --end_sample_id 14500 --device 2 &
+python3 run_multiple_detect.py --node_id 23 --data_folder unlabel_data --start_sample_id 14500 --end_sample_id 14706 --device 3 &

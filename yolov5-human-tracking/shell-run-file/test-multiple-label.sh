@@ -1,0 +1,10 @@
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 0 --end_sample_id 100 & 
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 100 --end_sample_id 200 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 200 --end_sample_id 300 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 300 --end_sample_id 400 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 400 --end_sample_id 500 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 500 --end_sample_id 600 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 600 --end_sample_id 700 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 700 --end_sample_id 800 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 800 --end_sample_id 900 &
+python3 run_multiple_detect.py --node_id 05 --data_folder label_data --start_sample_id 900 --end_sample_id 1000 &

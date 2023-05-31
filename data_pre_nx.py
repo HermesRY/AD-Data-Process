@@ -13,8 +13,9 @@ import shutil
 
 
 def preprocess_audio(audio_path, start_time, end_time, npy_save_path, args):
-    """ This function is used before training, it transforms raw audio to .npy file.
-        Including slice and MFCC generation
+    """
+    This function is used before training, it transforms raw audio to .npy file.
+    Including slice and MFCC generation
     """
     if not os.path.exists(audio_path):
         print("[Preprocess] Error: Cannot find directory: ", audio_path)
@@ -82,6 +83,7 @@ def preprocess_audio(audio_path, start_time, end_time, npy_save_path, args):
     np.save(npy_save_path, mfcc_matrix)
     #print(f"[Preprocess] Finish audio process {mfcc_matrix.shape} and saved in {npy_save_path}.")
     return True
+
 
 def preprocess_depth(depth_path, start_time, end_time, npy_save_path, args):
     if not os.path.exists(depth_path):
@@ -417,6 +419,7 @@ def preprocess_radar(radar_path, start_time, end_time, npy_save_path, args):
     #    radar_data = np.concatenate((radar_data, np.zeros((1,20,2,16,32,16))), axis=0)
     np.save(npy_save_path, radar_data)
     return True
+
 
 def __reshape_radar(data):
     """

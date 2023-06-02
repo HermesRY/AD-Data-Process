@@ -81,8 +81,8 @@ class AudioSampler:
         data_not_to_label = y[sr * (offset + self.label_length):sr * (offset + total_duration)]
 
         # save the data as mfcc
-        print("audio shape(label): ", data_to_label.shape)
-        print("audio shape(unlabeled): ", data_not_to_label.shape)
+        print("audio shape(label): ", data_to_label.shape, flush=True)
+        print("audio shape(unlabeled): ", data_not_to_label.shape, flush=True)
 
     def sample(self, time_ranges):
         with Pool(self.num_workers) as pool:

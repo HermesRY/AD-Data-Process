@@ -56,8 +56,8 @@ class RadarSampler:
         del to_label
         del not_to_label
 
-        print("radar shape(label): ", data_to_label.shape)
-        print("radar shape(unlabeled): ", data_not_to_label.shape)
+        print("radar shape(label): ", data_to_label.shape, flush=True)
+        print("radar shape(unlabeled): ", data_not_to_label.shape, flush=True)
 
     @staticmethod
     def __reshape_radar(data):

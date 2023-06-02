@@ -85,8 +85,8 @@ class DepthSampler:
                         to_label_frames.append(frame)
                     else:
                         not_to_label_frames.append(frame)
-            print("Depth shape(label): ", np.array(to_label_frames).shape)
-            print("Depth shape: ", np.array(not_to_label_frames).shape)
+            print("Depth shape(label): ", np.array(to_label_frames).shape, flush=True)
+            print("Depth shape: ", np.array(not_to_label_frames).shape, flush=True)
 
     def sample(self, time_ranges):
         with Pool(self.num_workers) as pool:

@@ -53,6 +53,7 @@ class RadarSampler:
         to_label = df[(df['Time'] >= start) & (df['Time'] <= start+label_length)]
         not_to_label = df[(df['Time'] > start+label_length) & (df['Time'] <= end)]
         data_to_label = to_label['Data'].apply(self.__reshape_radar).values
+        print(data_to_label)
         data_not_to_label = not_to_label['Data'].apply(self.__reshape_radar).values
         del df
         del to_label

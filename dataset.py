@@ -155,5 +155,5 @@ class AlzheimerDataset:
         clock_start = time.time()
 
         self._run_process_helper(self.check_single_hour_overlap, self.hours)
-
-        self.logger.info("Finished sampling {:s}. Total time cost: {.f}".format(self.root, time.time() - clock_start))
+        time_cost = timedelta(seconds=time.time() - clock_start)
+        self.logger.info(f"Finished sampling {self.root}. Total time cost: {time_cost}")

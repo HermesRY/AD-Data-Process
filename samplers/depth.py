@@ -23,7 +23,7 @@ class DepthSampler:
 
     def _folder_navigation(self):
         depth_video = [file for file in os.listdir(self.root) if file.endswith('.avi')]
-        depth_csv = [file for file in os.listdir(self.root) if file.endswith('.csv')]
+        depth_csv = [os.path.splitext(file)[0]+'.csv' for file in depth_video]
         dataframes = [pd.read_csv(os.path.join(self.root, file)) for file in depth_csv]
         # timestamps with microseconds
         end_timestamp = [df['timestamp'].iloc[-1] for df in dataframes]

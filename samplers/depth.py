@@ -57,8 +57,9 @@ class DepthSampler:
 
         to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+label_length)]
         not_to_label = df[(df['timestamp'] > start+label_length) & (df['timestamp'] <= end)]
-        to_label_idx = to_label[''].values
-        not_to_label_idx = not_to_label[''].values
+        # starring from 0
+        to_label_idx = to_label['frame_id'].values - 1
+        not_to_label_idx = not_to_label['frame_id'].values -1
         label_start, label_end = to_label_idx[0], to_label_idx[-1]
         not_label_end = not_to_label_idx[-1]
         del df

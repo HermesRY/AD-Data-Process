@@ -27,7 +27,8 @@ class RadarSampler:
 
         self.filenames = radar_files
         self.start_timestamps = [os.path.splitext(file)[0] for file in radar_files]
-        self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) + timedelta(seconds=8) for ts in self.start_timestamps]
+        # it takes time for radar from starting to sensing
+        self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) + timedelta(seconds=4) for ts in self.start_timestamps]
         self.end_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in end_timestamps]
         del radar_files
         del csv_files
@@ -61,8 +62,6 @@ class RadarSampler:
         del df
         del to_label
         del not_to_label
-        self.logger.info("radar shape(label): {:s}".format(str(data_to_label.shape)))
-        self.logger.info("radar shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))
 
     def wrap_read_single_file(self, file_timestamp, start, end):
         try:

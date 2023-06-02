@@ -79,9 +79,6 @@ class AudioSampler:
 
         data_to_label = y[sr * offset:sr * int(offset + self.label_length)]
         data_not_to_label = y[sr * int(offset + self.label_length):sr * int(offset + total_duration)]
-
-        self.logger.info("audio shape(label): {:s}".format(str(data_to_label.shape)))
-        self.logger.info("audio shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))
         # save the data as mfcc
 
     def wrap_read_single_file(self, file_timestamp, start, end):

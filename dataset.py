@@ -101,7 +101,7 @@ class AlzheimerDataset:
         return all_working_regions, total_working_time
 
     def check_single_hour_overlap(self, folder):
-        start = time.time()
+        clock_start = time.time()
         audio_path, depth_path, radar_path = os.path.join(self.audio_root, folder), \
                                              os.path.join(self.depth_root, folder), \
                                              os.path.join(self.radar_root, folder)
@@ -134,8 +134,8 @@ class AlzheimerDataset:
                     ]
                     self._start_sample(audio, depth, radar, selected_times)
 
-            self.logger.info("Finished sampling {:s} under {:s}. Time cost: {.f}"
-                             .format(folder, self.root, time.time() - start))
+            self.logger.info("Finished sampling {:s} under {:s}. Time cost: {:f}"
+                             .format(folder, self.root, time.time() - clock_start))
 
         else:
             self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:s}"
@@ -152,8 +152,8 @@ class AlzheimerDataset:
     def run(self):
         if not hasattr(self, 'hours'):
             self._check_common_hours()
-        start = time.time()
+        clock_start = time.time()
 
         self._run_process_helper(self.check_single_hour_overlap, self.hours)
 
-        self.logger.info("Finished sampling {:s}. Total time cost: {.f}".format(self.root, time.time() - start))
+        self.logger.info("Finished sampling {:s}. Total time cost: {.f}".format(self.root, time.time() - clock_start))

@@ -8,4 +8,4 @@ logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 ad = AlzheimerDataset(root="/mnt/nas/NX3/data", target_path="", logger=logger)
 
-ad.check_single_hour_overlap("2022-11-15_11-00-00")
+ad.run()

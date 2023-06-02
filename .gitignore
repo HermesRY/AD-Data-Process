@@ -1,0 +1,14 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# pycharm
+.idea/
+*.iws
+workspace.xml
+tasks.xml
+
+# MAC os
+.DS_Store
+__MACOSX/

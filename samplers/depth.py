@@ -50,12 +50,13 @@ class DepthSampler:
     def _read_single_file(self, file_timestamp, start, end, process=True):
         video_path = os.path.join(self.root, file_timestamp+".avi")
         csv_path = os.path.join(self.root, file_timestamp+".csv")
+        label_length = timedelta(seconds=self.label_length)
 
         df = pd.read_csv(csv_path)
         df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d_%H-%M-%S.%f")
 
-        to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+self.label_length)]
-        not_to_label = df[(df['timestamp'] > start+self.label_length) & (df['timestamp'] <= end)]
+        to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+label_length)]
+        not_to_label = df[(df['timestamp'] > start+label_length) & (df['timestamp'] <= end)]
         to_label_idx = to_label[''].values
         not_to_label_idx = not_to_label[''].values
         label_start, label_end = to_label_idx[0], to_label_idx[-1]

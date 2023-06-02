@@ -77,8 +77,8 @@ class AudioSampler:
         path = os.path.join(self.root, filename)
         y, sr = librosa.load(path)
 
-        data_to_label = y[sr * offset:sr * (offset + self.label_length)]
-        data_not_to_label = y[sr * (offset + self.label_length):sr * (offset + total_duration)]
+        data_to_label = y[sr * offset:sr * int(offset + self.label_length)]
+        data_not_to_label = y[sr * int(offset + self.label_length):sr * int(offset + total_duration)]
 
         self.logger.info("audio shape(label): {:s}".format(str(data_to_label.shape)))
         self.logger.info("audio shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))

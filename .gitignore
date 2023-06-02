@@ -12,3 +12,6 @@ tasks.xml
 # MAC os
 .DS_Store
 __MACOSX/
+
+# logging
+*.log

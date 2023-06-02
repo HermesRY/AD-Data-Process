@@ -110,11 +110,11 @@ class AlzheimerDataset:
                     duration = int((end - start).total_seconds())
                     selected_times = [
                         (
-                            start + i * self.chunk_size,
-                            min(start + i * self.chunk_size + sample_size, end),
+                            start + timedelta(seconds=i * self.chunk_size),
+                            min(start + timedelta(seconds=i * self.chunk_size + sample_size), end),
                         )
                         for i in range(duration // self.chunk_size + 2)
-                        if start + i * self.chunk_size < end
+                        if start + timedelta(seconds=i * self.chunk_size) < end
                            and (
                                    duration % self.chunk_size >= sample_size
                                    or i < duration // self.chunk_size

@@ -27,7 +27,7 @@ class RadarSampler:
 
         self.filenames = radar_files
         self.start_timestamps = [os.path.splitext(file)[0] for file in radar_files]
-        self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in self.start_timestamps]
+        self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) + timedelta(seconds=8) for ts in self.start_timestamps]
         self.end_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in end_timestamps]
         del radar_files
         del csv_files

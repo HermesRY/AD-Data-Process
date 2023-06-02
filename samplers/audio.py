@@ -71,8 +71,8 @@ class AudioSampler:
         filename = file_timestamp + '.wav'
         ts_time = datetime.strptime(file_timestamp, self.timestamp_tmpl)
 
-        offset = (start - ts_time).total_seconds()
-        total_duration = (end - start).total_seconds()
+        offset = int((start - ts_time).total_seconds())
+        total_duration = int((end - start).total_seconds())
 
         path = os.path.join(self.root, filename)
         y, sr = librosa.load(path)

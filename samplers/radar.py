@@ -90,7 +90,7 @@ class RadarSampler:
                 idx = 0
                 # find the target
                 for i in range(len(self.start_time)):
-                    if self.start_time[i] <= start < self.end_time:
+                    if self.start_time[i] <= start < self.end_time[i]:
                         idx = i
                         break
                 if not idx:

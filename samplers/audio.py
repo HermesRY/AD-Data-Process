@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 
 class AudioSampler:
-    def __init__(self, root, num_workers=4, chunk_size=200,
+    def __init__(self, root, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d_%H-%M-%S", num_workers=4, chunk_size=200,
                  sample_rate=.1, label_rate=.01, sample_labeled_data=True,
                  sample_unlabeled_data=True, save_raw_data=True, save_features=True):
         """
@@ -34,7 +34,9 @@ class AudioSampler:
 
         """
         self.root = root
-        # self.target_path = target_path
+        self.target_path = target_path
+        self.logger = logger
+        self.label_length = label_length
         self.num_workers = num_workers
         self.chunk_size = chunk_size
         self.sample_rate = sample_rate
@@ -43,10 +45,10 @@ class AudioSampler:
         self.unlabeled = sample_unlabeled_data
         self.save_raw = save_raw_data
         self.save_features = save_features
+        self.timestamp_tmpl = timestamp_tmpl
         assert label_rate <= sample_rate, 'label_rate should be less than sample_rate!'
 
         # make the needed directories
-        self._check_paths()
         self._folder_navigation()
 
     def _folder_navigation(self):
@@ -54,34 +56,50 @@ class AudioSampler:
         Count the start/end time and the duration of each audio file under the root.
         """
         audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
-        # calculate the total durations of the audio files under the root
         durations = [self._get_duration(file) for file in audio_files]
+        # calculate the total durations of the audio files under the root
         self.filenames = audio_files
-        self.durations = durations
-        self.total_duration = sum(durations)
         # count the start timestamps
         self.start_timestamps = [os.path.splitext(file)[0] for file in audio_files]
         self.start_time = [datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S") for ts in self.start_timestamps]
         # end_timestamps = start + duration
-        self.end_time = [start+timedelta(seconds=dur) for start, dur in zip(self.start_time, self.durations)]
-        self.end_timestamps = [t.strftime("%Y-%m-%d_%H-%M-%S") for t in self.end_time]
+        self.end_time = [start+timedelta(seconds=dur) for start, dur in zip(self.start_time, durations)]
         del audio_files
         del durations
 
-    def _check_paths(self):
-        # path to the sampled data to be labeled
-        self.label_raw_path = os.path.join(self.target_path, 'labeled', 'raw', 'audio')
-        self.label_feature_path = os.path.join(self.target_path, 'labeled', 'features', 'audio')
-        # path to the sampled data to be unlabeled
-        self.unlabeled_raw_path = os.path.join(self.target_path, 'unlabeled', 'raw', 'audio')
-        self.unlabeled_feature_path = os.path.join(self.target_path, 'unlabeled', 'features', 'audio')
+    def _read_single_file(self, file_timestamp, start, end):
+        filename = file_timestamp + '.wav'
+        ts_time = datetime.strptime(file_timestamp, self.timestamp_tmpl)
 
-        paths = [self.label_raw_path, self.label_feature_path,
-                 self.unlabeled_feature_path, self.unlabeled_raw_path]
+        offset = (start - ts_time).total_seconds()
+        total_duration = (end - start).total_seconds()
 
-        for path in paths:
-            if not os.path.exists(path):
-                os.makedirs(path)
+        path = os.path.join(self.root, filename)
+        y, sr = librosa.load(path)
+
+        data_to_label = y[sr * offset:sr * (offset + self.label_length)]
+        data_not_to_label = y[sr * (offset + self.label_length):sr * (offset + total_duration)]
+
+        # save the data as mfcc
+        print("audio shape(label): ", data_to_label.shape)
+        print("audio shape(unlabeled): ", data_not_to_label.shape)
+
+    def sample(self, time_ranges):
+        with Pool(self.num_workers) as pool:
+            for start, end in time_ranges:
+                idx = 0
+                # find the target
+                for i in range(len(self.start_time)):
+                    if self.start_time[i] <= start < self.end_time:
+                        idx = i
+                        break
+                if not idx:
+                    self.logger.error("Failed to find sample in range {:s} and {:s} in {:s}".format(start, end, self.root))
+                else:
+                    file_timestamp = self.start_timestamps[idx]
+                    pool.apply_async(self._read_single_file, args=(file_timestamp, start, end))
+                pool.close()
+                pool.join()
 
     @staticmethod
     def _save_audio_file(audio, sample_rate, path, filename):
@@ -98,55 +116,3 @@ class AudioSampler:
     def _get_duration(self, filename):
         wav, sr = librosa.load(os.path.join(self.root, filename))
         return librosa.get_duration(y=wav, sr=sr)
-
-    def _sample_single_file(self, path):
-        """
-        To sample a single .wav audio file
-        :param path: path to the .wav file
-        """
-        wav, sr = librosa.load(path)
-        # get the timestamp from the filename
-        start_timestamp = Path(path).stem
-        start_time = datetime.strptime(start_timestamp, "%Y-%m-%d_%H-%M-%S")
-
-        num_chunks = int(np.ceil(len(wav) / (self.chunk_size * sr)))
-        # for each chunk, sample the data to be labeled and unlabeled.
-        for i in range(num_chunks):
-            # for the data to be labeled
-            if self.label:
-                start_idx = i * num_chunks * sr
-                # end = start + sample_rate * chunk_size (10% * 200)
-                end_idx = start_idx + self.label_rate * self.chunk_size * sr
-                # avoid overflow
-                end_idx = min(end_idx, len(wav))
-
-                cur_time = start_time + timedelta(seconds=i * num_chunks)
-                cur_timestamp = cur_time.strftime("%Y-%m-%d_%H-%M-%S")
-
-                labeled_data = wav[start_idx:end_idx]
-                if self.save_raw:
-                    self._save_audio_file(labeled_data, sr, self.label_raw_path, cur_timestamp)
-                if self.save_features:
-                    self._save_features(labeled_data, sr, self.label_feature_path, cur_timestamp)
-
-            # for data not to be labeled
-            if self.unlabeled:
-                start_idx = i * num_chunks * sr + self.label_rate * self.chunk_size * sr + 1
-                end_idx = i * num_chunks * sr + self.sample_rate * self.chunk_size * sr
-                end_idx = min(end_idx, len(wav))
-
-                cur_time = start_time + timedelta(seconds=i * num_chunks + self.label_rate * self.chunk_size)
-                cur_timestamp = cur_time.strftime("%Y-%m-%d_%H-%M-%S")
-
-                unlabeled_data = wav[start_idx:end_idx]
-                if self.save_raw:
-                    self._save_audio_file(unlabeled_data, sr, self.unlabeled_raw_path, cur_timestamp)
-                if self.save_features:
-                    self._save_features(unlabeled_data, sr, self.unlabeled_feature_path, cur_timestamp)
-
-    def sample(self):
-        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
-        file_paths = [os.path.join(self.root, file) for file in audio_files]
-
-        with Pool(self.num_workers) as pool:
-            pool.map(self._sample_single_file, file_paths)

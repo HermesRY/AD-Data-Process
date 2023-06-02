@@ -99,8 +99,8 @@ class RadarSampler:
                 else:
                     file_timestamp = self.start_timestamps[idx]
                     pool.apply_async(self._read_single_file, args=(file_timestamp, start, end))
-        pool.close()
-        pool.join()
+            pool.close()
+            pool.join()
 
 
 

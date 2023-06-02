@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime, timedelta
 from multiprocessing import Pool, Process
 from samplers import AudioSampler, DepthSampler, RadarSampler
@@ -27,6 +28,16 @@ class AlzheimerDataset:
         depth = DepthSampler(depth_path, self.target_path, self.logger, self.label_length)
         radar = RadarSampler(radar_path, self.target_path, self.logger, self.label_length)
         return audio, depth, radar
+
+    @staticmethod
+    def _start_sample(audio, depth, radar, selected_times):
+        p1 = Process(target=audio.sample, args=(selected_times,))
+        p2 = Process(target=depth.sample, args=(selected_times,))
+        p3 = Process(target=radar.sample, args=(selected_times,))
+        for p in [p1, p2, p3]:
+            p.start()
+        for p in [p1, p2, p3]:
+            p.join()
 
     def _filter_hour_directories(self, path):
         """
@@ -90,6 +101,7 @@ class AlzheimerDataset:
         return all_working_regions, total_working_time
 
     def check_single_hour_overlap(self, folder):
+        start = time.time()
         audio_path, depth_path, radar_path = os.path.join(self.audio_root, folder), \
                                              os.path.join(self.depth_root, folder), \
                                              os.path.join(self.radar_root, folder)
@@ -120,16 +132,28 @@ class AlzheimerDataset:
                                    or i < duration // self.chunk_size
                            )
                     ]
-                    p1 = Process(target=audio.sample, args=(selected_times,))
-                    p2 = Process(target=depth.sample, args=(selected_times,))
-                    p3 = Process(target=radar.sample, args=(selected_times,))
-                    for p in [p1, p2, p3]:
-                        p.start()
-                    for p in [p1, p2, p3]:
-                        p.join()
+                    self._start_sample(audio, depth, radar, selected_times)
+
+            self.logger.info("Finished sampling {:s} under {:s}. Time cost: {.f}"
+                             .format(folder, self.root, time.time() - start))
 
         else:
             self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:s}"
                                 .format(folder, self.root, working_time, timedelta(seconds=sample_size)))
 
-        return working_periods, working_time
+    @staticmethod
+    def _run_process_helper(func, names):
+        processes = [Process(target=func, args=(item,)) for item in names]
+        for p in processes:
+            p.start()
+        for p in processes:
+            p.join()
+
+    def run(self):
+        if not hasattr(self, 'hours'):
+            self._check_common_hours()
+        start = time.time()
+
+        self._run_process_helper(self.check_single_hour_overlap, self.hours)
+
+        self.logger.info("Finished sampling {:s}. Total time cost: {.f}".format(self.root, time.time() - start))

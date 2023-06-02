@@ -84,6 +84,14 @@ class AudioSampler:
         self.logger.info("audio shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))
         # save the data as mfcc
 
+    def wrap_read_single_file(self, file_timestamp, start, end):
+        try:
+            self._read_single_file(file_timestamp, start, end)
+        except Exception as e:
+            path = os.path.join(self.root, file_timestamp + '.pkl')
+            self.logger.error("Failed to read file {:s} to load the data in range {:s} -> {:s}. Error message: {:s}".
+                              format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), e))
+
     def sample(self, time_ranges):
         with Pool(self.num_workers) as pool:
             for start, end in time_ranges:
@@ -100,7 +108,7 @@ class AudioSampler:
                                       .format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:
                     file_timestamp = self.start_timestamps[idx]
-                    pool.apply(self._read_single_file, args=(file_timestamp, start, end))
+                    pool.apply(self.wrap_read_single_file, args=(file_timestamp, start, end))
             pool.close()
             pool.join()
 

@@ -51,6 +51,10 @@ class RadarSampler:
         label_length = timedelta(seconds=self.label_length)
 
         to_label = df[(df['Time'] >= start) & (df['Time'] <= start+label_length)]
+        if to_label.shape[0] == 0:
+            print("radar filename: ", file_timestamp)
+            print("start timestamp: ", start.strftime(self.timestamp_tmpl))
+            print("end timestamp: ", (start+label_length).strftime(self.timestamp_tmpl))
         not_to_label = df[(df['Time'] > start+label_length) & (df['Time'] <= end)]
         data_to_label = np.stack(to_label['Data'].apply(self.__reshape_radar).values)
         data_not_to_label = np.stack(not_to_label['Data'].apply(self.__reshape_radar).values)
@@ -59,6 +63,14 @@ class RadarSampler:
         del not_to_label
         self.logger.info("radar shape(label): {:s}".format(str(data_to_label.shape)))
         self.logger.info("radar shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))
+
+    def wrap_read_single_file(self, file_timestamp, start, end):
+        try:
+            self._read_single_file(file_timestamp, start, end)
+        except Exception as e:
+            path = os.path.join(self.root, file_timestamp + '.pkl')
+            self.logger.error("Failed to read file {:s} to load the data in range {:s} -> {:s}. Error message: {:s}".
+                              format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), e))
 
     @staticmethod
     def __reshape_radar(data):
@@ -101,7 +113,7 @@ class RadarSampler:
                                       .format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:
                     file_timestamp = self.start_timestamps[idx]
-                    pool.apply(self._read_single_file, args=(file_timestamp, start, end))
+                    pool.apply(self.wrap_read_single_file, args=(file_timestamp, start, end))
             pool.close()
             pool.join()
 

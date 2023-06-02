@@ -105,7 +105,7 @@ class DepthSampler:
                                       format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:
                     file_timestamp = self.start_timestamps[idx]
-                    pool.apply_async(self._read_single_file, args=(file_timestamp, start, end))
+                    pool.apply(self._read_single_file, args=(file_timestamp, start, end))
             pool.close()
             pool.join()
 

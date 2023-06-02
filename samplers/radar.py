@@ -70,7 +70,7 @@ class RadarSampler:
         except Exception as e:
             path = os.path.join(self.root, file_timestamp + '.pkl')
             self.logger.error("Failed to read file {:s} to load the data in range {:s} -> {:s}. Error message: {:s}".
-                              format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), e))
+                              format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), str(e)))
 
     @staticmethod
     def __reshape_radar(data):

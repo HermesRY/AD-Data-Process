@@ -46,12 +46,12 @@ class RadarSampler:
     def _read_single_file(self, file_timestamp, start, end):
         filename = file_timestamp + '.pkl'
         df = self._read_pkl_as_csv(filename)
-        df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y%m%d-%H%M%S-%f")
+        df['Time'] = pd.to_datetime(df['Time'], format="%Y%m%d-%H%M%S-%f")
 
         label_length = timedelta(seconds=self.label_length)
 
-        to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+label_length)]
-        not_to_label = df[(df['timestamp'] > start+label_length) & (df['timestamp'] <= end)]
+        to_label = df[(df['Time'] >= start) & (df['Time'] <= start+label_length)]
+        not_to_label = df[(df['Time'] > start+label_length) & (df['Time'] <= end)]
         data_to_label = to_label['Data'].apply(self.__reshape_radar).values
         data_not_to_label = not_to_label['Data'].apply(self.__reshape_radar).values
         del df

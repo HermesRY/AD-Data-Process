@@ -104,19 +104,20 @@ class AlzheimerDataset:
         sample_size = self.chunk_size * self.sample_rate
 
         if working_time > timedelta(seconds=sample_size):
-            self.logger.info("Find {:s} overlap in {:s} under {:s}".format(working_time, folder, self.root))
+            self.logger.info("Find {:s} overlap in {:s} under {:s}".format(str(working_time), folder, self.root))
             for start, end in working_periods:
                 if (end - start) > timedelta(seconds=sample_size):
+                    duration = int((end - start).total_seconds())
                     selected_times = [
                         (
                             start + i * self.chunk_size,
                             min(start + i * self.chunk_size + sample_size, end),
                         )
-                        for i in range((end - start).total_seconds() // self.chunk_size + 2)
+                        for i in range(duration // self.chunk_size + 2)
                         if start + i * self.chunk_size < end
                            and (
-                                   (end - start) % self.chunk_size >= sample_size
-                                   or i < (end - start) // self.chunk_size
+                                   duration % self.chunk_size >= sample_size
+                                   or i < duration // self.chunk_size
                            )
                     ]
                     p1 = Process(target=audio.sample, args=(selected_times,))

@@ -98,7 +98,8 @@ class DepthSampler:
                         idx = i
                         break
                 if not idx:
-                    self.logger.error("Failed to find sample in range {:s} and {:s} in {:s}".format(start, end, self.root))
+                    self.logger.error("Failed to find sample in range {:s} and {:s} in {:s}".
+                                      format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:
                     file_timestamp = self.start_timestamps[idx]
                     pool.apply_async(self._read_single_file, args=(file_timestamp, start, end))

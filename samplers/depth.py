@@ -58,6 +58,8 @@ class DepthSampler:
         to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+label_length)]
         not_to_label = df[(df['timestamp'] > start+label_length) & (df['timestamp'] <= end)]
         # starring from 0
+        if to_label.shape[0] == 0 or not_to_label.shape[0] == 0:
+            print("Depth start time: {:s}, end time: {:s}; from file {:s}".format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), file_timestamp))
         to_label_idx = to_label['frame_id'].values - 1
         not_to_label_idx = not_to_label['frame_id'].values - 1
         label_start, label_end = to_label_idx[0], to_label_idx[-1]

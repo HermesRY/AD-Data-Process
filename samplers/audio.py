@@ -80,20 +80,22 @@ class AudioSampler:
         data_to_label = y[sr * offset:sr * (offset + self.label_length)]
         data_not_to_label = y[sr * (offset + self.label_length):sr * (offset + total_duration)]
 
+        self.logger.info("audio shape(label): {:s}".format(str(data_to_label.shape)))
+        self.logger.info("audio shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))
         # save the data as mfcc
-        print("audio shape(label): ", data_to_label.shape, flush=True)
-        print("audio shape(unlabeled): ", data_not_to_label.shape, flush=True)
 
     def sample(self, time_ranges):
         with Pool(self.num_workers) as pool:
             for start, end in time_ranges:
                 idx = 0
+                find = False
                 # find the target
                 for i in range(len(self.start_time)):
                     if self.start_time[i] <= start < self.end_time[i]:
                         idx = i
+                        find = True
                         break
-                if not idx:
+                if not find:
                     self.logger.error("Failed to find sample in range {:s} and {:s} in {:s}"
                                       .format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:

@@ -55,9 +55,8 @@ class RadarSampler:
         del df
         del to_label
         del not_to_label
-
-        print("radar shape(label): ", data_to_label.shape, flush=True)
-        print("radar shape(unlabeled): ", data_not_to_label.shape, flush=True)
+        self.logger.info("radar shape(label): {:s}".format(str(data_to_label.shape)))
+        self.logger.info("radar shape(unlabeled): {:s}".format(str(data_not_to_label.shape)))
 
     @staticmethod
     def __reshape_radar(data):
@@ -88,12 +87,14 @@ class RadarSampler:
         with Pool(self.num_workers) as pool:
             for start, end in time_ranges:
                 idx = 0
+                find = False
                 # find the target
                 for i in range(len(self.start_time)):
                     if self.start_time[i] <= start < self.end_time[i]:
                         idx = i
+                        find = True
                         break
-                if not idx:
+                if not find:
                     self.logger.error("Failed to find sample in range {:s} and {:s} in {:s}"
                                       .format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:

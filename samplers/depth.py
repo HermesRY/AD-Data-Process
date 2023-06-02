@@ -85,19 +85,22 @@ class DepthSampler:
                         to_label_frames.append(frame)
                     else:
                         not_to_label_frames.append(frame)
-            print("Depth shape(label): ", np.array(to_label_frames).shape, flush=True)
-            print("Depth shape: ", np.array(not_to_label_frames).shape, flush=True)
+
+            self.logger.info("depth shape(label): {:s}".format(str(np.array(to_label_frames).shape)))
+            self.logger.info("depth shape(unlabeled): {:s}".format(str(np.array(not_to_label_frames).shape)))
 
     def sample(self, time_ranges):
         with Pool(self.num_workers) as pool:
             for start, end in time_ranges:
                 idx = 0
+                find = False
                 # find the target
                 for i in range(len(self.start_time)):
                     if self.start_time[i] <= start < self.end_time[i]:
                         idx = i
+                        find = True
                         break
-                if not idx:
+                if not find:
                     self.logger.error("Failed to find sample in range {:s} and {:s} in {:s}".
                                       format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), self.root))
                 else:

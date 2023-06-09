@@ -17,6 +17,9 @@ class RadarSampler:
         self.label_length = label_length
         self.timestamp_tmpl = timestamp_tmpl
         self.num_workers = num_workers
+
+        self.label_path = os.path.join(self.target_path, 'label', 'depth')
+        self.unlabel_path = os.path.join(self.target_path, 'unlabel', 'depth')
         self._folder_navigation()
 
     def _folder_navigation(self):
@@ -59,6 +62,15 @@ class RadarSampler:
         not_to_label = df[(df['Time'] > start+label_length) & (df['Time'] <= end)]
         data_to_label = np.stack(to_label['Data'].apply(self.__reshape_radar).values)
         data_not_to_label = np.stack(not_to_label['Data'].apply(self.__reshape_radar).values)
+
+        label_ts = start.strftime(self.timestamp_tmpl)
+        label_path = os.path.join(self.label_path, label_ts + '.npy')
+        np.save(label_path, data_to_label)
+
+        unlabel_ts = (start + label_length).strftime(self.timestamp_tmpl)
+        unlabel_path = os.path.join(self.unlabel_path, unlabel_ts + '.npy')
+        np.save(unlabel_path, data_not_to_label)
+
         del df
         del to_label
         del not_to_label

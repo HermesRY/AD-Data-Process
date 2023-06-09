@@ -11,9 +11,7 @@ from datetime import datetime, timedelta
 
 
 class AudioSampler:
-    def __init__(self, root, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d_%H-%M-%S", num_workers=4, chunk_size=200,
-                 sample_rate=.1, label_rate=.01, sample_labeled_data=True,
-                 sample_unlabeled_data=True, save_raw_data=True, save_features=True):
+    def __init__(self, root, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d_%H-%M-%S", num_workers=4):
         """
         This class samples a specified percentage of data from audio files under a specified folder,
         and saves the sampled data to a target path. The audio files are separated into chunks whose size
@@ -22,32 +20,16 @@ class AudioSampler:
         :param root: path of the audio files, generated every hour, e.g., ./data/audio/2022-11-21_10-00-00/
         :param target_path: path to store the sampled data
         :param num_workers: number of workers
-        :param chunk_size: The size of the basic chunk (default: 200 seconds).
-        :param sample_rate: The proportion of data to be sampled (default: 10%).
-                            The first `sample_rate` percentage of every chunk is to be sampled.
-        :param label_rate: The proportion of data to be labeled (default: 1%).
-                            The first `label_rate` percentage of each chunk is to be labeled.
-        :param sample_labeled_data: If True, data to be labeled will be sampled.
-        :param sample_unlabeled_data: If True, data not to be labeled will be sampled.
-        :param save_raw_data: If True, the raw sampled data (i.e., the wav file) will be saved.
-        :param save_features: If True, the processed data (i.e., the features) will be saved.
-
         """
         self.root = root
         self.target_path = target_path
         self.logger = logger
         self.label_length = label_length
         self.num_workers = num_workers
-        self.chunk_size = chunk_size
-        self.sample_rate = sample_rate
-        self.label_rate = label_rate
-        self.label = sample_labeled_data
-        self.unlabeled = sample_unlabeled_data
-        self.save_raw = save_raw_data
-        self.save_features = save_features
         self.timestamp_tmpl = timestamp_tmpl
-        assert label_rate <= sample_rate, 'label_rate should be less than sample_rate!'
 
+        self.label_path = os.path.join(self.target_path, 'label', 'audio')
+        self.unlabel_path = os.path.join(self.target_path, 'unlabel', 'audio')
         # make the needed directories
         self._folder_navigation()
 
@@ -55,15 +37,21 @@ class AudioSampler:
         """
         Count the start/end time and the duration of each audio file under the root.
         """
-        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
+        audio_timestamp = [os.path.splitext(file)[0] for file in os.listdir(self.root) if file.endswith('.wav')]
+        csv_timestamp = [os.path.splitext(file)[0] for file in os.listdir(self.root) if file.endswith('.csv')]
+        common_timestamp = [ts for ts in audio_timestamp if ts in csv_timestamp]
+        audio_files = [ts + '.wav' for ts in common_timestamp]
         durations = [self._get_duration(file) for file in audio_files]
         # calculate the total durations of the audio files under the root
         self.filenames = audio_files
         # count the start timestamps
-        self.start_timestamps = [os.path.splitext(file)[0] for file in audio_files]
+        self.start_timestamps = common_timestamp
         self.start_time = [datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S") for ts in self.start_timestamps]
         # end_timestamps = start + duration
         self.end_time = [start+timedelta(seconds=dur) for start, dur in zip(self.start_time, durations)]
+        del audio_timestamp
+        del csv_timestamp
+        del common_timestamp
         del audio_files
         del durations
 
@@ -78,14 +66,19 @@ class AudioSampler:
         y, sr = librosa.load(path)
 
         data_to_label = y[sr * offset:sr * int(offset + self.label_length)]
+        timestamp_label = start.strftime(self.timestamp_tmpl)
+
         data_not_to_label = y[sr * int(offset + self.label_length):sr * int(offset + total_duration)]
-        # save the data as mfcc
+        timestamp_not_to_label = (start + timedelta(seconds=self.label_length)).strftime(self.timestamp_tmpl)
+
+        self._save_features(data_to_label, sr, self.label_path, timestamp_label)
+        self._save_features(data_not_to_label, sr, self.unlabel_path, timestamp_not_to_label)
 
     def wrap_read_single_file(self, file_timestamp, start, end):
         try:
             self._read_single_file(file_timestamp, start, end)
         except Exception as e:
-            path = os.path.join(self.root, file_timestamp + '.pkl')
+            path = os.path.join(self.root, file_timestamp + '.wav')
             self.logger.error("Failed to read file {:s} to load the data in range {:s} -> {:s}. Error message: {:s}".
                               format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), str(e)))
 

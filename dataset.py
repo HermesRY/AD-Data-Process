@@ -22,6 +22,22 @@ class AlzheimerDataset:
         self.audio_root = os.path.join(self.root, 'audio')
         self.depth_root = os.path.join(self.root, 'depth')
         self.radar_root = os.path.join(self.root, 'radar')
+        self._check_path()
+
+    def _check_path(self):
+        label_audio_path = os.path.join(self.target_path, 'label', 'audio')
+        label_depth_path = os.path.join(self.target_path, 'label', 'depth')
+        label_radar_path = os.path.join(self.target_path, 'label', 'radar')
+        unlabel_audio_path = os.path.join(self.target_path, 'unlabel', 'audio')
+        unlabel_depth_path = os.path.join(self.target_path, 'unlabel', 'depth')
+        unlabel_radar_path = os.path.join(self.target_path, 'unlabel', 'radar')
+
+        paths = [label_audio_path, label_depth_path, label_radar_path,
+                 unlabel_audio_path, unlabel_depth_path, unlabel_radar_path]
+        for path in paths:
+            if not os.path.exists(path):
+                os.makedirs(path)
+            del path
 
     def _init_sensors(self, audio_path, depth_path, radar_path):
         audio = AudioSampler(audio_path, self.target_path, self.logger, self.label_length)

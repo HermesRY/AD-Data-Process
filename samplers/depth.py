@@ -19,6 +19,9 @@ class DepthSampler:
         self.frame_size = frame_size
         self.timestamp_tmpl = timestamp_tmpl
         self.num_workers = num_workers
+
+        self.label_path = os.path.join(self.target_path, 'label', 'depth')
+        self.unlabel_path = os.path.join(self.target_path, 'unlabel', 'depth')
         self._folder_navigation()
 
     def _folder_navigation(self):
@@ -90,11 +93,20 @@ class DepthSampler:
                     else:
                         not_to_label_frames.append(frame)
 
+            label_timestamp = start.strftime(self.timestamp_tmpl)
+            label_path = os.path.join(self.label_path, label_timestamp + '.mp4')
+
+            unlabel_timestamp = (start + label_length).strftime(self.timestamp_tmpl)
+            unlabel_path = os.path.join(self.unlabel_path, unlabel_timestamp + '.mp4')
+
+            self._write_frames_to_video(label_path, to_label_frames, self.frame_size)
+            self._write_frames_to_video(unlabel_path, not_to_label_frames, self.frame_size)
+
     def wrap_read_single_file(self, file_timestamp, start, end):
         try:
             self._read_single_file(file_timestamp, start, end)
         except Exception as e:
-            path = os.path.join(self.root, file_timestamp + '.pkl')
+            path = os.path.join(self.root, file_timestamp + '.avi')
             self.logger.error("Failed to read file {:s} to load the data in range {:s} -> {:s}. Error message: {:s}".
                               format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), str(e)))
 
@@ -117,4 +129,12 @@ class DepthSampler:
                     pool.apply(self.wrap_read_single_file, args=(file_timestamp, start, end))
             pool.close()
             pool.join()
+
+    @staticmethod
+    def _write_frames_to_video(video_path, frames, size):
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video = cv2.VideoWriter(video_path, fourcc, 10, (size, size))
+        for frame in frames:
+            video.write(frame)
+        video.release()
 

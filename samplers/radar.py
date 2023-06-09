@@ -18,8 +18,8 @@ class RadarSampler:
         self.timestamp_tmpl = timestamp_tmpl
         self.num_workers = num_workers
 
-        self.label_path = os.path.join(self.target_path, 'label', 'depth')
-        self.unlabel_path = os.path.join(self.target_path, 'unlabel', 'depth')
+        self.label_path = os.path.join(self.target_path, 'label', 'radar')
+        self.unlabel_path = os.path.join(self.target_path, 'unlabel', 'radar')
         self._folder_navigation()
 
     def _folder_navigation(self):

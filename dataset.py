@@ -154,8 +154,8 @@ class AlzheimerDataset:
                              .format(folder, self.root, time.time() - clock_start))
 
         else:
-            self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:s}"
-                                .format(folder, self.root, working_time, str(timedelta(seconds=sample_size))))
+            self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:f} seconds"
+                                .format(folder, self.root, working_time, sample_size))
 
     @staticmethod
     def _run_process_helper(func, names):

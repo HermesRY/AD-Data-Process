@@ -25,10 +25,7 @@ class DepthSampler:
         self._folder_navigation()
 
     def _folder_navigation(self):
-        timestamps = self._find_usable_timestamp()
-        dataframes = [pd.read_csv(os.path.join(self.root, ts+'.csv')) for ts in timestamps]
-        # timestamps with microseconds
-        end_timestamp = [df['timestamp'].iloc[-1] for df in dataframes]
+        timestamps, end_timestamp = self._find_usable_timestamp()
         # timestamps without microseconds
         end_timestamp = [self._drop_microseconds(string) for string in end_timestamp]
 
@@ -37,12 +34,12 @@ class DepthSampler:
         self.end_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in end_timestamp]
         self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in self.start_timestamps]
         del timestamps
-        del dataframes
         del end_timestamp
 
     def _find_usable_timestamp(self):
         depth_video = [file for file in os.listdir(self.root) if file.endswith('.avi')]
         timestamp = []
+        end_timestamp = []
         for item in depth_video:
             file_ts = os.path.splitext(item)[0]
             # check if the corresponding csv exists
@@ -51,7 +48,9 @@ class DepthSampler:
                 csv_file = pd.read_csv(csv_path)
                 if csv_file.shape[0] > 0:
                     timestamp.append(file_ts)
-        return timestamp
+                    end_timestamp.append(csv_file['timestamp'].iloc[-1])
+
+        return timestamp, end_timestamp
 
     def _drop_microseconds(self, string):
         """

@@ -25,22 +25,33 @@ class DepthSampler:
         self._folder_navigation()
 
     def _folder_navigation(self):
-        depth_video = [file for file in os.listdir(self.root) if file.endswith('.avi')]
-        depth_csv = [os.path.splitext(file)[0]+'.csv' for file in depth_video]
-        dataframes = [pd.read_csv(os.path.join(self.root, file)) for file in depth_csv]
+        timestamps = self._find_usable_timestamp()
+        dataframes = [pd.read_csv(os.path.join(self.root, ts+'.csv')) for ts in timestamps]
         # timestamps with microseconds
         end_timestamp = [df['timestamp'].iloc[-1] for df in dataframes]
         # timestamps without microseconds
         end_timestamp = [self._drop_microseconds(string) for string in end_timestamp]
 
-        self.filenames = depth_video
-        self.start_timestamps = [os.path.splitext(file)[0] for file in depth_video]
+        self.filenames = [ts + '.avi' for ts in timestamps]
+        self.start_timestamps = timestamps
         self.end_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in end_timestamp]
         self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in self.start_timestamps]
-        del depth_video
-        del depth_csv
+        del timestamps
         del dataframes
         del end_timestamp
+
+    def _find_usable_timestamp(self):
+        depth_video = [file for file in os.listdir(self.root) if file.endswith('.avi')]
+        timestamp = []
+        for item in depth_video:
+            file_ts = os.path.splitext(item)[0]
+            # check if the corresponding csv exists
+            csv_path = os.path.join(self.root, file_ts + '.csv')
+            if os.path.exists(csv_path):
+                csv_file = pd.read_csv(csv_path)
+                if csv_file.shape[0] > 0:
+                    timestamp.append(file_ts)
+        return timestamp
 
     def _drop_microseconds(self, string):
         """

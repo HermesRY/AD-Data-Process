@@ -37,21 +37,16 @@ class AudioSampler:
         """
         Count the start/end time and the duration of each audio file under the root.
         """
-        audio_timestamp = [os.path.splitext(file)[0] for file in os.listdir(self.root) if file.endswith('.wav')]
-        csv_timestamp = [os.path.splitext(file)[0] for file in os.listdir(self.root) if file.endswith('.csv')]
-        common_timestamp = [ts for ts in audio_timestamp if ts in csv_timestamp]
-        audio_files = [ts + '.wav' for ts in common_timestamp]
+        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
         durations = [self._get_duration(file) for file in audio_files]
         # calculate the total durations of the audio files under the root
         self.filenames = audio_files
         # count the start timestamps
-        self.start_timestamps = common_timestamp
+        self.start_timestamps = [os.path.splitext(file)[0] for file in audio_files]
         self.start_time = [datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S") for ts in self.start_timestamps]
         # end_timestamps = start + duration
         self.end_time = [start+timedelta(seconds=dur) for start, dur in zip(self.start_time, durations)]
-        del audio_timestamp
-        del csv_timestamp
-        del common_timestamp
+
         del audio_files
         del durations
 

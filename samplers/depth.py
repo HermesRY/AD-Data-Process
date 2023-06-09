@@ -56,8 +56,12 @@ class DepthSampler:
         """
         Load the string (format = %Y-%m-%d_%H-%M-%S.%f) to %Y-%m-%d_%H-%M-%S, i.e., drop the microseconds.
         """
-        str_time = datetime.strptime(string, "%Y-%m-%d_%H-%M-%S.%f")
-        str_wo_ms = str_time.strftime(self.timestamp_tmpl)
+        try:
+            str_time = datetime.strptime(string, "%Y-%m-%d_%H-%M-%S.%f")
+            str_wo_ms = str_time.strftime(self.timestamp_tmpl)
+        except Exception as e:
+            print(f"Failed to convert string {string} to datetime. Error message: {e}")
+
         return str_wo_ms
 
     def _read_single_file(self, file_timestamp, start, end, process=True):

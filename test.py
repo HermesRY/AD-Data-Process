@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--id', type=str, help='Subject index')
 args = parser.parse_args()
 
-logging.basicConfig(filename='logger.log', format='%(asctime)s %(levelname)-8s %(message)s',
+logging.basicConfig(filename=f"{args.id}.log", format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,
                     datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger('main')

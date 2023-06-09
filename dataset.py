@@ -7,7 +7,7 @@ from samplers import AudioSampler, DepthSampler, RadarSampler
 
 class AlzheimerDataset:
     def __init__(self, root, target_path, logger, chunk_size=200, sample_rate=.1,
-                 label_rate=.01, start_time="7:00:00", end_time="19:00:00", num_workers=32):
+                 label_rate=.01, start_time="7:00:00", end_time="19:00:00"):
         self.root = root
         self.target_path = target_path
         self.logger = logger
@@ -16,7 +16,6 @@ class AlzheimerDataset:
         self.label_rate = label_rate
         self.start_time = start_time
         self.end_time = end_time
-        self.num_workers = num_workers
         self.label_length = self.chunk_size * self.label_rate
 
         self.audio_root = os.path.join(self.root, 'audio')
@@ -154,7 +153,7 @@ class AlzheimerDataset:
                              .format(folder, self.root, time.time() - clock_start))
 
         else:
-            self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:f} seconds"
+            self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:.2f} seconds"
                                 .format(folder, self.root, str(working_time), sample_size))
 
     @staticmethod

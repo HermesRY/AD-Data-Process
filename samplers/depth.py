@@ -45,10 +45,13 @@ class DepthSampler:
             # check if the corresponding csv exists
             csv_path = os.path.join(self.root, file_ts + '.csv')
             if os.path.exists(csv_path):
-                csv_file = pd.read_csv(csv_path)
-                if csv_file.shape[0] > 0 and isinstance(csv_file['timestamp'].iloc[-1], str):
-                    timestamp.append(file_ts)
-                    end_timestamp.append(csv_file['timestamp'].iloc[-1])
+                try:
+                    csv_file = pd.read_csv(csv_path)
+                    if csv_file.shape[0] > 0 and isinstance(csv_file['timestamp'].iloc[-1], str):
+                        timestamp.append(file_ts)
+                        end_timestamp.append(csv_file['timestamp'].iloc[-1])
+                except pd.errors.EmptyDataError:
+                    self.logger.error(f"Empty CSV file {csv_path}")
 
         return timestamp, end_timestamp
 

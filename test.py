@@ -14,7 +14,7 @@ logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 
 data_path = f"/mnt/nas/{args.id}/data"
-save_path = f"./{args.id}"
+save_path = f"/mnt/AD-temp-data/sample_li/{args.id}"
 
 ad = AlzheimerDataset(root=data_path, target_path=save_path, logger=logger, num_workers=args.workers)
 

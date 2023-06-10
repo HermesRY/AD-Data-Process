@@ -7,7 +7,7 @@ from samplers import AudioSampler, DepthSampler, RadarSampler
 
 class AlzheimerDataset:
     def __init__(self, root, target_path, logger, chunk_size=200, sample_rate=.1,
-                 label_rate=.01, start_time="7:00:00", end_time="19:00:00"):
+                 label_rate=.01, start_time="7:00:00", end_time="19:00:00", num_workers=16):
         self.root = root
         self.target_path = target_path
         self.logger = logger
@@ -16,6 +16,7 @@ class AlzheimerDataset:
         self.label_rate = label_rate
         self.start_time = start_time
         self.end_time = end_time
+        self.num_workers = num_workers
         self.label_length = self.chunk_size * self.label_rate
 
         self.audio_root = os.path.join(self.root, 'audio')
@@ -157,18 +158,19 @@ class AlzheimerDataset:
                                 .format(folder, self.root, str(working_time), sample_size))
 
     @staticmethod
-    def _run_process_helper(func, names):
-        processes = [Process(target=func, args=(item,)) for item in names]
-        for p in processes:
-            p.start()
-        for p in processes:
-            p.join()
+    def _run_process_helper(func, names, num_workers):
+        with Pool(num_workers) as pool:
+            pool.map_async(func, names)
+
+            # Close the pool and wait for all processes to complete
+            pool.close()
+            pool.join()
 
     def run(self):
         if not hasattr(self, 'hours'):
             self._check_common_hours()
         clock_start = time.time()
 
-        self._run_process_helper(self.check_single_hour_overlap, self.hours)
+        self._run_process_helper(self.check_single_hour_overlap, self.hours, self.num_workers)
         time_cost = timedelta(seconds=time.time() - clock_start)
         self.logger.info(f"Finished sampling {self.root}. Total time cost: {time_cost}")

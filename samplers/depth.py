@@ -46,7 +46,7 @@ class DepthSampler:
             csv_path = os.path.join(self.root, file_ts + '.csv')
             if os.path.exists(csv_path):
                 csv_file = pd.read_csv(csv_path)
-                if csv_file.shape[0] > 0:
+                if csv_file.shape[0] > 0 and isinstance(csv_file['timestamp'].iloc[-1], str):
                     timestamp.append(file_ts)
                     end_timestamp.append(csv_file['timestamp'].iloc[-1])
 
@@ -56,11 +56,9 @@ class DepthSampler:
         """
         Load the string (format = %Y-%m-%d_%H-%M-%S.%f) to %Y-%m-%d_%H-%M-%S, i.e., drop the microseconds.
         """
-        try:
-            str_time = datetime.strptime(string, "%Y-%m-%d_%H-%M-%S.%f")
-            str_wo_ms = str_time.strftime(self.timestamp_tmpl)
-        except Exception as e:
-            print(f"Failed to convert string {string} to datetime. Error message: {e}")
+
+        str_time = datetime.strptime(string, "%Y-%m-%d_%H-%M-%S.%f")
+        str_wo_ms = str_time.strftime(self.timestamp_tmpl)
 
         return str_wo_ms
 

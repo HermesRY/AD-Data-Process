@@ -4,7 +4,7 @@ from dataset import AlzheimerDataset
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--id', type=str, help='Subject index')
-parser.add_argument('--workers', type=int, default=16, help='number of workers')
+parser.add_argument('--workers', type=int, default=32, help='number of workers')
 args = parser.parse_args()
 
 logging.basicConfig(filename=f"{args.id}.log", format='%(asctime)s %(levelname)-8s %(message)s',

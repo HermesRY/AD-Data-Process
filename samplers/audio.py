@@ -6,7 +6,7 @@ import librosa
 import soundfile
 import numpy as np
 from pathlib import Path
-from multiprocessing import Pool
+from .pool import Pool
 from datetime import datetime, timedelta
 
 

@@ -1,8 +1,8 @@
 import os
 import time
 from datetime import datetime, timedelta
-from multiprocessing import Pool, Process
-from samplers import AudioSampler, DepthSampler, RadarSampler
+from multiprocessing import Process
+from samplers import AudioSampler, DepthSampler, RadarSampler, Pool
 
 
 class AlzheimerDataset:

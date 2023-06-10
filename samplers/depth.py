@@ -5,7 +5,7 @@ import soundfile
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from multiprocessing import Pool
+from .pool import Pool
 from datetime import datetime, timedelta
 
 

@@ -160,7 +160,10 @@ class AlzheimerDataset:
     @staticmethod
     def _run_process_helper(func, names, num_workers):
         with Pool(num_workers) as pool:
-            pool.map_async(func, names)
+            result = pool.map_async(func, names)
+
+            # Wait for all processes to finish (ignoring the returned list of None values)
+            result.get()
 
             # Close the pool and wait for all processes to complete
             pool.close()

@@ -29,7 +29,6 @@ class DepthSampler:
         # timestamps without microseconds
         end_timestamp = [self._drop_microseconds(string) for string in end_timestamp]
 
-        self.filenames = [ts + '.avi' for ts in timestamps]
         self.start_timestamps = timestamps
         self.end_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in end_timestamp]
         self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in self.start_timestamps]
@@ -50,8 +49,8 @@ class DepthSampler:
                     if csv_file.shape[0] > 0 and isinstance(csv_file['timestamp'].iloc[-1], str):
                         timestamp.append(file_ts)
                         end_timestamp.append(csv_file['timestamp'].iloc[-1])
-                except pd.errors.EmptyDataError:
-                    self.logger.error(f"Empty CSV file {csv_path}")
+                except pd.errors.EmptyDataError as e:
+                    self.logger.warning(f"Failed to read CSV file {csv_path}. Error message: {e}")
 
         return timestamp, end_timestamp
 
@@ -76,8 +75,12 @@ class DepthSampler:
         to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+label_length)]
         not_to_label = df[(df['timestamp'] > start+label_length) & (df['timestamp'] <= end)]
         # starring from 0
-        if to_label.shape[0] == 0 or not_to_label.shape[0] == 0:
-            print("Depth start time: {:s}, end time: {:s}; from file {:s}".format(start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), file_timestamp))
+        if to_label.shape[0] == 0:
+            self.logger.error(
+                f"No to-label data available in {video_path}. Sample range: {start} -> {start + label_length}")
+        if not_to_label.shape[0] == 0:
+            self.logger.error(
+                f"No not-to-label data available in {video_path}. Sample range: {start + label_length} -> {end}")
         to_label_idx = to_label['frame_id'].values - 1
         not_to_label_idx = not_to_label['frame_id'].values - 1
         label_start, label_end = to_label_idx[0], to_label_idx[-1]

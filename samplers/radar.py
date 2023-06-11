@@ -23,24 +23,40 @@ class RadarSampler:
         self._folder_navigation()
 
     def _folder_navigation(self):
-        radar_files = [file for file in os.listdir(self.root) if file.endswith('.pkl')]
-        csv_files = [self._read_pkl_as_csv(file) for file in radar_files]
-        end_timestamps = [df['Time'].iloc[-1] for df in csv_files]
+        starts, end_timestamps = self._find_valid_files()
         end_timestamps = [self._drop_milliseconds(dt_str) for dt_str in end_timestamps]
 
-        self.filenames = radar_files
-        self.start_timestamps = [os.path.splitext(file)[0] for file in radar_files]
+        self.start_timestamps = starts
         # it takes time for radar from starting to sensing
         self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) + timedelta(seconds=4) for ts in self.start_timestamps]
         self.end_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in end_timestamps]
-        del radar_files
-        del csv_files
+        del starts
         del end_timestamps
 
+    def _find_valid_files(self):
+        radar_files = [file for file in os.listdir(self.root) if file.endswith('.pkl')]
+        starts = []
+        ends = []
+        for filename in radar_files:
+            try:
+                with open(os.path.join(self.root, filename), 'rb') as file:
+                    data = pickle.load(file)
+                if data.shape[0] != 0:
+                    ends.append(data['Time'].iloc[-1])
+                    starts.append(os.path.splitext(filename)[0])
+                else:
+                    self.logger.warning(f"Empty radar file {os.path.join(self.root, filename)}")
+            except Exception as e:
+                self.logger.warning(f"Failed to read radar file {os.path.join(self.root, filename)}. {e}")
+        return starts, ends
+
     def _read_pkl_as_csv(self, filename):
-        with open(os.path.join(self.root, filename), 'rb') as file:
-            data = pickle.load(file)
-        return pd.DataFrame(data)
+        try:
+            with open(os.path.join(self.root, filename), 'rb') as file:
+                data = pickle.load(file)
+            return pd.DataFrame(data)
+        except Exception as e:
+            self.logger.error(f"Failed to read radar file {os.path.join(self.root, filename)}. {e}")
 
     def _drop_milliseconds(self, string):
         str_time = datetime.strptime(string, '%Y%m%d-%H%M%S-%f')
@@ -55,11 +71,15 @@ class RadarSampler:
         label_length = timedelta(seconds=self.label_length)
 
         to_label = df[(df['Time'] >= start) & (df['Time'] <= start+label_length)]
-        if to_label.shape[0] == 0:
-            print("radar filename: ", file_timestamp)
-            print("start timestamp: ", start.strftime(self.timestamp_tmpl))
-            print("end timestamp: ", (start+label_length).strftime(self.timestamp_tmpl))
         not_to_label = df[(df['Time'] > start+label_length) & (df['Time'] <= end)]
+        if to_label.shape[0] == 0:
+            self.logger.error(
+                f"No to-label data available in {os.path.join(self.root, filename)}. "
+                f"Sample range: {start} -> {start + label_length}")
+        if not_to_label.shape[0] == 0:
+            self.logger.error(
+                f"No not-to-label data available in {os.path.join(self.root, filename)}. "
+                f"Sample range: {start + label_length} -> {end}")
         data_to_label = np.stack(to_label['Data'].apply(self.__reshape_radar).values)
         data_not_to_label = np.stack(not_to_label['Data'].apply(self.__reshape_radar).values)
 

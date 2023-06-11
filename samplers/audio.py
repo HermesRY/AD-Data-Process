@@ -37,18 +37,29 @@ class AudioSampler:
         """
         Count the start/end time and the duration of each audio file under the root.
         """
-        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
-        durations = [self._get_duration(file) for file in audio_files]
-        # calculate the total durations of the audio files under the root
-        self.filenames = audio_files
+        start_timestamps, durations = self._find_valid_files()
         # count the start timestamps
-        self.start_timestamps = [os.path.splitext(file)[0] for file in audio_files]
+        self.start_timestamps = start_timestamps
         self.start_time = [datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S") for ts in self.start_timestamps]
         # end_timestamps = start + duration
         self.end_time = [start+timedelta(seconds=dur) for start, dur in zip(self.start_time, durations)]
 
-        del audio_files
+        del start_timestamps
         del durations
+
+    def _find_valid_files(self):
+        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
+        starts = []
+        durations = []
+        for filename in audio_files:
+            try:
+                wav, sr = librosa.load(os.path.join(self.root, filename))
+                dur = librosa.get_duration(y=wav, sr=sr)
+                starts.append(os.path.splitext(filename)[0])
+                durations.append(dur)
+            except Exception as e:
+                self.logger.warning(f"Failed to read file {os.path.join(self.root, filename)}. Error message: {e}")
+        return starts, durations
 
     def _read_single_file(self, file_timestamp, start, end):
         filename = file_timestamp + '.wav'
@@ -108,7 +119,3 @@ class AudioSampler:
         save_path = os.path.join(path, filename+".npy")
         features = librosa.feature.mfcc(y=audio, sr=sample_rate)
         np.save(save_path, features)
-
-    def _get_duration(self, filename):
-        wav, sr = librosa.load(os.path.join(self.root, filename))
-        return librosa.get_duration(y=wav, sr=sr)

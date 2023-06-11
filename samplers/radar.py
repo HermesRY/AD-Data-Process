@@ -38,16 +38,12 @@ class RadarSampler:
         starts = []
         ends = []
         for filename in radar_files:
-            try:
-                with open(os.path.join(self.root, filename), 'rb') as file:
-                    data = pickle.load(file)
-                if data.shape[0] != 0:
-                    ends.append(data['Time'].iloc[-1])
-                    starts.append(os.path.splitext(filename)[0])
-                else:
-                    self.logger.warning(f"Empty radar file {os.path.join(self.root, filename)}")
-            except Exception as e:
-                self.logger.warning(f"Failed to read radar file {os.path.join(self.root, filename)}. {e}")
+            data = self._read_pkl_as_csv(filename)
+            if data.shape[0] != 0:
+                ends.append(data['Time'].iloc[-1])
+                starts.append(os.path.splitext(filename)[0])
+            else:
+                self.logger.warning(f"Empty radar file {os.path.join(self.root, filename)}")
         return starts, ends
 
     def _read_pkl_as_csv(self, filename):

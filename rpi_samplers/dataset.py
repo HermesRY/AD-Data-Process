@@ -2,10 +2,10 @@ import os
 import time
 from datetime import datetime, timedelta
 from multiprocessing import Process
-from samplers import AudioSampler, DepthSampler, RadarSampler, Pool
+from . import AudioSampler, DepthSampler, RadarSampler, Pool
 
 
-class AlzheimerDataset:
+class RpiAlzheimerDataset:
     def __init__(self, root, target_path, logger, chunk_size=200, sample_rate=.1,
                  label_rate=.01, start_time="7:00:00", end_time="19:00:00", num_workers=16):
         self.root = root
@@ -39,10 +39,10 @@ class AlzheimerDataset:
                 os.makedirs(path)
             del path
 
-    def _init_sensors(self, audio_path, depth_path, radar_path):
-        audio = AudioSampler(audio_path, self.target_path, self.logger, self.label_length)
+    def _init_sensors(self, audio_path, depth_path, radar_path, hour_datetime):
+        audio = AudioSampler(audio_path, hour_datetime, self.target_path, self.logger, self.label_length)
         depth = DepthSampler(depth_path, self.target_path, self.logger, self.label_length)
-        radar = RadarSampler(radar_path, self.target_path, self.logger, self.label_length)
+        radar = RadarSampler(radar_path, hour_datetime, self.target_path, self.logger, self.label_length)
         return audio, depth, radar
 
     @staticmethod
@@ -55,27 +55,35 @@ class AlzheimerDataset:
         for p in [p1, p2, p3]:
             p.join()
 
-    def _filter_hour_directories(self, path):
+    def _filter_hour_directories(self, timestamp):
         """
         This function iterates all the directories under path
         and select those are between start_time and end_time
         """
-        hour_strs = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
-        # filter out empty folders
-        hour_strs = [d for d in hour_strs if len(os.listdir(os.path.join(path, d))) > 0]
         start_time = datetime.strptime(self.start_time, '%H:%M:%S').time()
         end_time = datetime.strptime(self.end_time, '%H:%M:%S').time()
-        filtered_hours = [d for d in hour_strs if
-                          start_time <= datetime.strptime(d, '%Y-%m-%d_%H-%M-%S').time() <= end_time]
+        filtered_hours = [d.strftime('%Y-%m-%d_%H-%M-%S') for d in timestamp if start_time <= d.time() <= end_time]
         return filtered_hours
 
     def _check_common_hours(self):
         """
         Select the hours that all the three sensors have logged something.
         """
-        audio_hours, depth_hours, radar_hours = self._filter_hour_directories(self.audio_root), \
-                                                self._filter_hour_directories(self.depth_root), \
-                                                self._filter_hour_directories(self.radar_root)
+        audio_strs = [d for d in os.listdir(self.audio_root) if d.endswith('.wav')]
+        audio_strs = [item.split('_')[-1].split('.')[0] for item in audio_strs]
+        audio_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in audio_strs]
+
+        depth_strs = [d for d in os.listdir(self.depth_root) if os.path.isdir(os.path.join(self.depth_root, d))]
+        depth_strs = [d for d in depth_strs if len(os.listdir(os.path.join(self.depth_root, d))) > 0]
+        depth_ts = [datetime.strptime(d, '%Y-%m-%d_%H-%M-%S') for d in depth_strs]
+
+        radar_strs = [d for d in os.listdir(self.radar_root) if d.endswith('.pkl')]
+        radar_strs = [item.split('_')[-1].split('.')[0] for item in radar_strs]
+        radar_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in radar_strs]
+
+        audio_hours, depth_hours, radar_hours = self._filter_hour_directories(audio_ts), \
+                                                self._filter_hour_directories(depth_ts), \
+                                                self._filter_hour_directories(radar_ts)
 
         audio_hours, depth_hours, radar_hours = set(audio_hours), set(depth_hours), set(radar_hours)
         common_hours = audio_hours.intersection(depth_hours, radar_hours)
@@ -116,14 +124,13 @@ class AlzheimerDataset:
 
         return all_working_regions, total_working_time
 
-    def check_single_hour_overlap(self, folder):
+    def check_single_hour_overlap(self, hour_ts):
         clock_start = time.time()
-        audio_path, depth_path, radar_path = os.path.join(self.audio_root, folder), \
-                                             os.path.join(self.depth_root, folder), \
-                                             os.path.join(self.radar_root, folder)
+        hour_dt = datetime.strptime(hour_ts, '%Y-%m-%d_%H-%M-%S')
+        depth_path = os.path.join(self.depth_root, hour_ts)
 
         with Pool(processes=3) as pool:
-            audio, depth, radar = pool.starmap(self._init_sensors, [(audio_path, depth_path, radar_path)])[0]
+            audio, depth, radar = pool.starmap(self._init_sensors, [(self.audio_root, depth_path, self.radar_root, hour_dt)])[0]
 
         start_time = audio.start_time + depth.start_time + radar.start_time
         end_time = audio.end_time + depth.end_time + radar.end_time
@@ -132,7 +139,7 @@ class AlzheimerDataset:
         sample_size = self.chunk_size * self.sample_rate
 
         if working_time > timedelta(seconds=sample_size):
-            self.logger.info("Find {:s} overlap in {:s} under {:s}".format(str(working_time), folder, self.root))
+            self.logger.info("Find {:s} overlap in {:s} under {:s}".format(str(working_time), hour_ts, self.root))
             for start, end in working_periods:
                 if (end - start) > timedelta(seconds=sample_size):
                     duration = int((end - start).total_seconds())
@@ -151,11 +158,11 @@ class AlzheimerDataset:
                     self._start_sample(audio, depth, radar, selected_times)
 
             self.logger.info("Finished sampling {:s} under {:s}. Time cost: {:f}"
-                             .format(folder, self.root, time.time() - clock_start))
+                             .format(hour_ts, self.root, time.time() - clock_start))
 
         else:
             self.logger.warning("Overlap in {:s} under {:s} is {:s} less than {:.2f} seconds"
-                                .format(folder, self.root, str(working_time), sample_size))
+                                .format(hour_ts, self.root, str(working_time), sample_size))
 
     @staticmethod
     def _run_process_helper(func, names, num_workers):

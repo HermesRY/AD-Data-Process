@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 
 class AudioSampler:
-    def __init__(self, root, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d_%H-%M-%S", num_workers=4):
+    def __init__(self, root, hour_datetime, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d-%H-%M-%S", num_workers=4):
         """
         This class samples a specified percentage of data from audio files under a specified folder,
         and saves the sampled data to a target path. The audio files are separated into chunks whose size
@@ -22,6 +22,8 @@ class AudioSampler:
         :param num_workers: number of workers
         """
         self.root = root
+        self.hour_datetime = hour_datetime
+        self.hour_str = hour_datetime.strftime("%Y-%m-%d-%H")
         self.target_path = target_path
         self.logger = logger
         self.label_length = label_length
@@ -40,7 +42,7 @@ class AudioSampler:
         start_timestamps, durations = self._find_valid_files()
         # count the start timestamps
         self.start_timestamps = start_timestamps
-        self.start_time = [datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S") for ts in self.start_timestamps]
+        self.start_time = [datetime.strptime(ts, self.timestamp_tmpl) for ts in self.start_timestamps]
         # end_timestamps = start + duration
         self.end_time = [start+timedelta(seconds=dur) for start, dur in zip(self.start_time, durations)]
 
@@ -48,21 +50,21 @@ class AudioSampler:
         del durations
 
     def _find_valid_files(self):
-        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav')]
+        audio_files = [file for file in os.listdir(self.root) if file.endswith('.wav') and file.startswith('audio_'+self.hour_str)]
         starts = []
         durations = []
         for filename in audio_files:
             try:
                 wav, sr = librosa.load(os.path.join(self.root, filename))
                 dur = librosa.get_duration(y=wav, sr=sr)
-                starts.append(os.path.splitext(filename)[0])
+                starts.append(os.path.splitext(filename)[0].split('_')[-1])
                 durations.append(dur)
             except Exception as e:
                 self.logger.warning(f"Failed to read file {os.path.join(self.root, filename)}. Error message: {e}")
         return starts, durations
 
     def _read_single_file(self, file_timestamp, start, end):
-        filename = file_timestamp + '.wav'
+        filename = 'audio_' + file_timestamp + '.wav'
         ts_time = datetime.strptime(file_timestamp, self.timestamp_tmpl)
 
         offset = int((start - ts_time).total_seconds())

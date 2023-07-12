@@ -19,9 +19,7 @@ class RpiAlzheimerDataset:
         self.num_workers = num_workers
         self.label_length = self.chunk_size * self.label_rate
 
-        self.audio_root = os.path.join(self.root, 'audio')
-        self.depth_root = os.path.join(self.root, 'depth')
-        self.radar_root = os.path.join(self.root, 'radar')
+        self.audio_root = self.depth_root = self.radar_root = self.root
         self._check_path()
 
     def _check_path(self):

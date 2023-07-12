@@ -43,7 +43,7 @@ class RadarSampler:
             data = self._read_pkl_as_csv(filename)
             if data.shape[0] != 0:
                 ends.append(data['Time'].iloc[-1])
-                starts.append(os.path.splitext(filename)[0])
+                starts.append(os.path.splitext(filename)[0].split('_')[-1])
             else:
                 self.logger.warning(f"Empty radar file {os.path.join(self.root, filename)}")
         return starts, ends

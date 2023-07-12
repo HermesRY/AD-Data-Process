@@ -10,8 +10,10 @@ from datetime import datetime, timedelta
 
 
 class RadarSampler:
-    def __init__(self, root, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d_%H-%M-%S", num_workers=4):
+    def __init__(self, root, hour_datetime, target_path, logger, label_length, timestamp_tmpl="%Y-%m-%d-%H-%M-%S", num_workers=4):
         self.root = root
+        self.hour_datetime = hour_datetime
+        self.hour_str = hour_datetime.strftime("%Y-%m-%d-%H")
         self.target_path = target_path
         self.logger = logger
         self.label_length = label_length
@@ -34,7 +36,7 @@ class RadarSampler:
         del end_timestamps
 
     def _find_valid_files(self):
-        radar_files = [file for file in os.listdir(self.root) if file.endswith('.pkl')]
+        radar_files = [file for file in os.listdir(self.root) if file.endswith('.pkl') and file.startswith('R01_' + self.hour_str)]
         starts = []
         ends = []
         for filename in radar_files:
@@ -60,7 +62,7 @@ class RadarSampler:
         return str_wo_ms
 
     def _read_single_file(self, file_timestamp, start, end):
-        filename = file_timestamp + '.pkl'
+        filename = 'R01_' + file_timestamp + '.pkl'
         df = self._read_pkl_as_csv(filename)
         df['Time'] = pd.to_datetime(df['Time'], format="%Y%m%d-%H%M%S-%f")
 
@@ -95,7 +97,7 @@ class RadarSampler:
         try:
             self._read_single_file(file_timestamp, start, end)
         except Exception as e:
-            path = os.path.join(self.root, file_timestamp + '.pkl')
+            path = os.path.join(self.root, 'R01_' + file_timestamp + '.pkl')
             self.logger.error("Failed to read file {:s} to load the data in range {:s} -> {:s}. Error message: {:s}".
                               format(path, start.strftime(self.timestamp_tmpl), end.strftime(self.timestamp_tmpl), str(e)))
 

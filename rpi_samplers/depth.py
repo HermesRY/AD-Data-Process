@@ -46,6 +46,8 @@ class DepthSampler:
             if os.path.exists(csv_path):
                 try:
                     csv_file = pd.read_csv(csv_path)
+                    csv_file['valid'] = csv_file['timestamp'].apply(self.is_valid_timestamp)
+                    csv_file = csv_file[csv_file['valid']]
                     if csv_file.shape[0] > 0 and isinstance(csv_file['timestamp'].iloc[-1], str):
                         timestamp.append(file_ts)
                         end_timestamp.append(csv_file['timestamp'].iloc[-1])
@@ -53,16 +55,25 @@ class DepthSampler:
                     self.logger.warning(f"Failed to read CSV file {csv_path}. Error message: {e}")
 
         return timestamp, end_timestamp
+    
+    @staticmethod
+    def is_valid_timestamp(timestamp_str):
+        try:
+            datetime.strptime(timestamp_str, '%Y-%m-%d_%H-%M-%S.%f')
+            return True
+        except Exception:
+            return False
 
     def _drop_microseconds(self, string):
         """
         Load the string (format = %Y-%m-%d_%H-%M-%S.%f) to %Y-%m-%d_%H-%M-%S, i.e., drop the microseconds.
         """
-
-        str_time = datetime.strptime(string, "%Y-%m-%d_%H-%M-%S.%f")
-        str_wo_ms = str_time.strftime(self.timestamp_tmpl)
-
-        return str_wo_ms
+        try:
+            str_time = datetime.strptime(string, "%Y-%m-%d_%H-%M-%S.%f")
+            str_wo_ms = str_time.strftime(self.timestamp_tmpl)
+            return str_wo_ms
+        except Exception as e:
+            self.logger.error(f"Failed to load datetime {string}. Error message: {e}")
 
     def _read_single_file(self, file_timestamp, start, end, process=True):
         video_path = os.path.join(self.root, file_timestamp+".avi")

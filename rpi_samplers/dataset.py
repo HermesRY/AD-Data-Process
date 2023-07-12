@@ -72,6 +72,7 @@ class RpiAlzheimerDataset:
         audio_strs = [d for d in os.listdir(self.audio_root) if d.endswith('.wav')]
         audio_strs = [item.split('_')[-1].split('.')[0] for item in audio_strs]
         audio_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in audio_strs]
+        audio_strs = [item.strftime('%Y-%m-%d_%H-00-00') for item in audio_ts]
 
         depth_strs = [d for d in os.listdir(self.depth_root) if os.path.isdir(os.path.join(self.depth_root, d))]
         depth_strs = [d for d in depth_strs if len(os.listdir(os.path.join(self.depth_root, d))) > 0]

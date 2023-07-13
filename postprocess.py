@@ -68,6 +68,8 @@ def _process_single_time(source_root, target_root, timestamp, id):
             np.save(os.path.join(target_root, 'audio', str(id)+'.npy'), audio_file)
             np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
             np.save(os.path.join(target_root, 'radar', str(id)+'.npy'), radar_file)
+        else:
+            print(f"Shape not equal! Depth {depth_features.shape}; Radar {radar_file.shape}; Audio: {audio_file.shape}")
     except Exception as e:
         print(f"Failed to process {timestamp} data under {source_root}. Error message {e}")
 

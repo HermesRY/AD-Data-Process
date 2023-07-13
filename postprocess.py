@@ -61,15 +61,15 @@ def _process_single_time(source_root, target_root, timestamp):
         audio_path = os.path.join(source_root, 'audio')
         depth_path = os.path.join(source_root, 'depth')
         radar_path = os.path.join(source_root, 'radar')
-        audio_file = np.load(audio_path)
-        radar_file = np.load(radar_path)
-        depth_features = np.load(depth_path)
+        audio_file = np.load(os.path.join(audio_path, timestamp+'.npy'))
+        radar_file = np.load(os.path.join(radar_path, timestamp+'.npy'))
+        depth_features = process_video(os.path.join(depth_path, timestamp+'.mp4'))
         if audio_file.shape == audio_shape and radar_file.shape == radar_shape and depth_features == depth_shape:
             np.save(os.path.join(target_root, 'audio', timestamp+'.npy'), audio_file)
             np.save(os.path.join(target_root, 'depth', timestamp+'.npy'), depth_features)
             np.save(os.path.join(target_root, 'radar', timestamp+'.npy'), radar_file)
     except Exception as e:
-        print(f"Failed to process {timestamp} data under {source_root}")
+        print(f"Failed to process {timestamp} data under {source_root}. Error message {e}")
 
 
 def _process_single_subject(cur_root, target_root, yolo=None):
@@ -82,7 +82,7 @@ def _process_single_subject(cur_root, target_root, yolo=None):
         common_ts = common_ts.intersection(set(yolo))
     process_list = []
     for timestamp in common_ts:
-        process_list.append(Process(target=_process_single_subject, args=(cur_root, target_root, timestamp)))
+        process_list.append(Process(target=_process_single_time, args=(cur_root, target_root, timestamp)))
     for p in process_list:
         p.start()
     for p in process_list:

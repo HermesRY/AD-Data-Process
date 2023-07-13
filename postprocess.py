@@ -58,7 +58,6 @@ def _make_modality_path(root):
 
 def _process_single_time(source_root, target_root, timestamp, id):
     try:
-        _make_modality_path(target_root)
         audio_path = os.path.join(source_root, 'audio')
         depth_path = os.path.join(source_root, 'depth')
         radar_path = os.path.join(source_root, 'radar')
@@ -74,6 +73,7 @@ def _process_single_time(source_root, target_root, timestamp, id):
 
 
 def _process_single_subject(cur_root, target_root, yolo=None, workers=8):
+    _make_modality_path(target_root)
     cur_depth_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'depth')) if item.endswith('.mp4')]
     cur_radar_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'radar')) if item.endswith('.npy')]
     cur_audio_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'audio')) if item.endswith('.npy')]

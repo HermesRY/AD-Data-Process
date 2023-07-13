@@ -50,6 +50,15 @@ def process_video(path):
     features = np.array(frames)
     return features
 
+def process_radar(radar, target_shape):
+    if radar.shape == target_shape:
+        return radar
+    elif radar.shape[0] > target_shape[0]:
+        return radar[:target_shape[0]]
+    else:
+        res = target_shape[0] - radar.shape[0]
+        return np.concatenate((radar, radar[:res]), axis=0)
+
 def _make_modality_path(root):
     modal = ['audio', 'depth', 'radar']
     for m in modal:
@@ -63,6 +72,7 @@ def _process_single_time(source_root, target_root, timestamp, id):
         radar_path = os.path.join(source_root, 'radar')
         audio_file = np.load(os.path.join(audio_path, timestamp+'.npy'))
         radar_file = np.load(os.path.join(radar_path, timestamp+'.npy'))
+        radar_file = process_radar(radar_file, radar_shape)
         depth_features = process_video(os.path.join(depth_path, timestamp+'.mp4'))
         if audio_file.shape == audio_shape and radar_file.shape == radar_shape and depth_features.shape == depth_shape:
             np.save(os.path.join(target_root, 'audio', str(id)+'.npy'), audio_file)

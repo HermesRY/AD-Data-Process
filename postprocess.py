@@ -94,7 +94,7 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=8):
 
 def run():
     filter_idx = [item for item in os.listdir(filter_path) if os.path.isdir(os.path.join(filter_path, item))]
-    sample_idx = [item for item in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, item))]
+    sample_idx = [item for item in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, item)) and item != 'filtered_videos']
     process = []
     for id in sample_idx:
         if id in filter_idx:

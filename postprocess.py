@@ -49,8 +49,15 @@ def process_video(path):
     features = np.array(frames)
     return features
 
+def _make_modality_path(root):
+    modal = ['audio', 'dehtp', 'radar']
+    for m in modal:
+        if not os.path.exists(os.path.join(root, m)):
+            os.makedirs(os.path.join(root, m))
+
 def _process_single_time(source_root, target_root, timestamp):
     try:
+        _make_modality_path(target_root)
         audio_path = os.path.join(source_root, 'audio')
         depth_path = os.path.join(source_root, 'depth')
         radar_path = os.path.join(source_root, 'radar')
@@ -75,7 +82,7 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=4):
         common_ts = common_ts.intersection(set(yolo))
     with Pool(workers) as pool:
         for timestamp in common_ts:
-            pool.apply_async(_process_single_subject, args=(cur_root, target_root, timestamp))
+            pool.apply(_process_single_subject, args=(cur_root, target_root, timestamp))
         pool.close()
         pool.join()
     
@@ -93,8 +100,8 @@ def run(num_workers):
             target_label_dir = os.path.join(target_path, id, 'label')
             cur_unlabel_dir = os.path.join(data_path, id, 'unlabel')
             target_unlabel_dir = os.path.join(target_path, id, 'unlabel')
-            pool.apply_async(_process_single_subject, args=(cur_label_dir, target_label_dir, yolo_ts))
-            pool.apply_async(_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir))
+            pool.apply(_process_single_subject, args=(cur_label_dir, target_label_dir, yolo_ts))
+            pool.apply(_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir))
         pool.close()
         pool.join()
 

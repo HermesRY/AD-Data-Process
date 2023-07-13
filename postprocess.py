@@ -12,7 +12,7 @@ depth_frames = 16
 depth_shape = (16, 112, 112)
 radar_shape = (20, 2, 16, 32, 16)
 audio_shape = (20, 87)
-max_workers = 16
+max_workers = 32
 
 def process_video(path):
     cap = cv2.VideoCapture(path)
@@ -72,7 +72,7 @@ def _process_single_time(source_root, target_root, timestamp):
         print(f"Failed to process {timestamp} data under {source_root}")
 
 
-def _process_single_subject(cur_root, target_root, yolo=None, workers=4):
+def _process_single_subject(cur_root, target_root, yolo=None):
     cur_depth_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'depth')) if item.endswith('.mp4')]
     cur_radar_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'radar')) if item.endswith('.npy')]
     cur_audio_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'audio')) if item.endswith('.npy')]
@@ -80,11 +80,13 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=4):
     common_ts = audio_ts.intersection(depth_ts, radar_ts)
     if yolo is not None:
         common_ts = common_ts.intersection(set(yolo))
-    with Pool(workers) as pool:
-        for timestamp in common_ts:
-            pool.apply(_process_single_subject, args=(cur_root, target_root, timestamp))
-        pool.close()
-        pool.join()
+    process_list = []
+    for timestamp in common_ts:
+        process_list.append(Process(target=_process_single_subject, args=(cur_root, target_root, timestamp)))
+    for p in process_list:
+        p.start()
+    for p in process_list:
+        p.join()
     
 
 def run(num_workers):

@@ -1,7 +1,7 @@
 import os
 import cv2
 import numpy as np
-from .nx_samplers import Pool
+from nx_samplers import Pool
 from multiprocessing import Process
 
 
@@ -81,8 +81,8 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=4):
     
 
 def run(num_workers):
-    filter_idx = [item for item in os.path.list(filter_path) if os.path.isdir(os.path.join(filter_path, item))]
-    sample_idx = [item for item in os.path.list(data_path) if os.path.isdir(os.path.join(data_path, item))]
+    filter_idx = [item for item in os.listdir(filter_path) if os.path.isdir(os.path.join(filter_path, item))]
+    sample_idx = [item for item in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, item))]
     with Pool(num_workers) as pool:
         for id in sample_idx:
             if id in filter_idx:

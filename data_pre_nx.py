@@ -69,7 +69,6 @@ def preprocess_audio(audio_path, start_time, end_time, npy_save_path, args):
         return False
 
     wav_length = wav_length - wav_length % args.clip_duration
-    #print(f"[Preprocess] Finish audio load: {wav_length} seconds, start to process audio.")
     mfcc_matrix = []
     for i in range(0, wav_length, args.clip_duration):
         slice_wav = result_wav[i * sr: (i + args.reserved_time) * sr]

@@ -95,7 +95,7 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=8):
     if yolo is not None:
         common_ts = common_ts.intersection(set(yolo))
     common_ts = list(common_ts)
-    sorted_timestamps = sorted(common_ts, key=lambda x: datetime.strptime(x, '%Y-%m-%d_%H-%M-%S'))
+    common_ts = sorted(common_ts, key=lambda x: datetime.strptime(x, '%Y-%m-%d_%H-%M-%S'))
     df = pd.DataFrame({'id': np.arange(len(common_ts)), 'timestamp': common_ts})
     df.to_csv(os.path.join(target_root, "timestamp.csv"), index=False)
     

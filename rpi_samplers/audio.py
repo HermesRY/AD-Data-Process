@@ -74,10 +74,10 @@ class AudioSampler:
         y, sr = librosa.load(path)
 
         data_to_label = y[sr * offset:sr * int(offset + self.label_length)]
-        timestamp_label = start.strftime(self.timestamp_tmpl)
+        timestamp_label = start.strftime("%Y-%m-%d_%H-%M-%S")
 
         data_not_to_label = y[sr * int(offset + self.label_length):sr * int(offset + total_duration)]
-        timestamp_not_to_label = (start + timedelta(seconds=self.label_length)).strftime(self.timestamp_tmpl)
+        timestamp_not_to_label = (start + timedelta(seconds=self.label_length)).strftime("%Y-%m-%d_%H-%M-%S")
 
         self._save_features(data_to_label, sr, self.label_path, timestamp_label)
         self._save_features(data_not_to_label, sr, self.unlabel_path, timestamp_not_to_label)

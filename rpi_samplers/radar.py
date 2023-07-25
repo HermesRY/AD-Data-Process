@@ -81,11 +81,11 @@ class RadarSampler:
         data_to_label = np.stack(to_label['Data'].apply(self.__reshape_radar).values)
         data_not_to_label = np.stack(not_to_label['Data'].apply(self.__reshape_radar).values)
 
-        label_ts = start.strftime(self.timestamp_tmpl)
+        label_ts = start.strftime("%Y-%m-%d_%H-%M-%S")
         label_path = os.path.join(self.label_path, label_ts + '.npy')
         np.save(label_path, data_to_label)
 
-        unlabel_ts = (start + label_length).strftime(self.timestamp_tmpl)
+        unlabel_ts = (start + label_length).strftime("%Y-%m-%d_%H-%M-%S")
         unlabel_path = os.path.join(self.unlabel_path, unlabel_ts + '.npy')
         np.save(unlabel_path, data_not_to_label)
 

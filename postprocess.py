@@ -111,19 +111,18 @@ def run():
     sample_idx = [item for item in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, item)) and item != 'filtered_videos']
     process = []
     for id in sample_idx:
-        if id in filter_idx:
-            yolo_ts = [item.split('.')[0] for item in os.listdir(os.path.join(filter_path, id)) if item.endswith('.mp4')]
-        else:
-            yolo_ts = None
+        yolo_ts = None
         cur_label_dir = os.path.join(data_path, id, 'label')
         target_label_dir = os.path.join(target_path, id, 'label')
         cur_unlabel_dir = os.path.join(data_path, id, 'unlabel')
         target_unlabel_dir = os.path.join(target_path, id, 'unlabel')
         process.append(Process(target=_process_single_subject, args=(cur_label_dir, target_label_dir, yolo_ts)))
+        process.append(Process(target=_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir, yolo_ts)))
     for p in process:
         p.start()
     for p in process:
         p.join()
+
 
 if __name__ == '__main__':
     run()

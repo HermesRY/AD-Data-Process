@@ -117,7 +117,7 @@ def run():
         cur_unlabel_dir = os.path.join(data_path, id, 'unlabel')
         target_unlabel_dir = os.path.join(target_path, id, 'unlabel')
         process.append(Process(target=_process_single_subject, args=(cur_label_dir, target_label_dir, yolo_ts)))
-        process.append(Process(target=_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir, yolo_ts)))
+        #process.append(Process(target=_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir, yolo_ts)))
     for p in process:
         p.start()
     for p in process:

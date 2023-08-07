@@ -1,0 +1,48 @@
+multiprocessing.pool.RemoteTraceback: 
+"""
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 51, in starmapstar
+    return list(itertools.starmap(args[0], args[1]))
+  File "/root/AD-Data-Process/nx_samplers/dataset.py", line 45, in _init_sensors
+    radar = RadarSampler(radar_path, self.target_path, self.logger, self.label_length)
+  File "/root/AD-Data-Process/nx_samplers/radar.py", line 23, in __init__
+    self._folder_navigation()
+  File "/root/AD-Data-Process/nx_samplers/radar.py", line 26, in _folder_navigation
+    starts, end_timestamps = self._find_valid_files()
+  File "/root/AD-Data-Process/nx_samplers/radar.py", line 42, in _find_valid_files
+    if data.shape[0] != 0:
+AttributeError: 'NoneType' object has no attribute 'shape'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 48, in mapstar
+    return list(map(*args))
+  File "/root/AD-Data-Process/nx_samplers/dataset.py", line 126, in check_single_hour_overlap
+    audio, depth, radar = pool.starmap(self._init_sensors, [(audio_path, depth_path, radar_path)])[0]
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 375, in starmap
+    return self._map_async(func, iterable, starmapstar, chunksize).get()
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 774, in get
+    raise self._value
+AttributeError: 'NoneType' object has no attribute 'shape'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/root/AD-Data-Process/test.py", line 26, in <module>
+    ad.run()
+  File "/root/AD-Data-Process/nx_samplers/dataset.py", line 177, in run
+    self._run_process_helper(self.check_single_hour_overlap, self.hours, self.num_workers)
+  File "/root/AD-Data-Process/nx_samplers/dataset.py", line 166, in _run_process_helper
+    result.get()
+  File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 774, in get
+    raise self._value
+AttributeError: 'NoneType' object has no attribute 'shape'

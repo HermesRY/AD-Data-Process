@@ -15,7 +15,7 @@ logging.basicConfig(filename=f"{args.id}.log", format='%(asctime)s %(levelname)-
 logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 
-data_path = f"/mnt/hdd_nas/AD-Data/{args.id}"
+data_path = f"/mnt/hdd_nas/AD-Data/{args.id}/data"
 save_path = f"/pm1733_x3/sample_li/{args.id}"
 
 if args.env == 'nx':

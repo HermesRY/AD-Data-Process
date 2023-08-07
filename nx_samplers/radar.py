@@ -39,7 +39,7 @@ class RadarSampler:
         ends = []
         for filename in radar_files:
             data = self._read_pkl_as_csv(filename)
-            if data.shape[0] != 0:
+            if data is not None and data.shape[0] != 0:
                 ends.append(data['Time'].iloc[-1])
                 starts.append(os.path.splitext(filename)[0])
             else:

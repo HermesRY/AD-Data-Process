@@ -46,3 +46,27 @@ Traceback (most recent call last):
   File "/root/anaconda3/lib/python3.10/multiprocessing/pool.py", line 774, in get
     raise self._value
 AttributeError: 'NoneType' object has no attribute 'shape'
+/root/anaconda3/lib/python3.10/site-packages/librosa/core/spectrum.py:256: UserWarning: n_fft=2048 is too large for input signal of length=0
+  warnings.warn(
+/root/AD-Data-Process/nx_samplers/audio.py:56: UserWarning: PySoundFile failed. Trying audioread instead.
+  wav, sr = librosa.load(os.path.join(self.root, filename))
+/root/anaconda3/lib/python3.10/site-packages/librosa/core/audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+	Deprecated as of librosa version 0.10.0.
+	It will be removed in librosa version 1.0.
+  y, sr_native = __audioread_load(path, offset, duration, dtype)
+Shape not equal! Depth (16, 112, 112); Radar (20, 2, 16, 32, 16); Audio: (20, 44)
+Shape not equal! Depth (16, 112, 112); Radar (20, 2, 16, 32, 16); Audio: (20, 44)
+Shape not equal! Depth (16, 112, 112); Radar (6, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (18, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (18, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (20, 2, 16, 32, 16); Audio: (20, 44)
+Shape not equal! Depth (16, 112, 112); Radar (14, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (18, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (2, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (10, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (6, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (12, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (20, 2, 16, 32, 16); Audio: (20, 44)
+Shape not equal! Depth (16, 112, 112); Radar (14, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (14, 2, 16, 32, 16); Audio: (20, 87)
+Shape not equal! Depth (16, 112, 112); Radar (4, 2, 16, 32, 16); Audio: (20, 87)

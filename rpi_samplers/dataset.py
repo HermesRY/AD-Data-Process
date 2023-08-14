@@ -100,18 +100,18 @@ class RpiAlzheimerDataset:
                                                 self._filter_hour_directories(depth_strs), \
                                                 self._filter_hour_directories(radar_strs)
 
-        if len(depth_hours) != 0:
+        if len(depth_hours) >= 100:
             self.depth_sensor = True
-        if len(radar_hours) != 0:
+        if len(radar_hours) >= 100:
             self.radar_sensor = True
-        if len(audio_hours) != 0:
+        if len(audio_hours) >= 100:
             self.audio_sensor = True
 
         # if there is no audio or radar, use depth hours
-        if len(depth_hours) != 0:
-            if len(audio_hours) == 0:
+        if self.depth_sensor:
+            if not self.audio_sensor:
                 audio_hours = depth_hours
-            if len(radar_hours) == 0:
+            if not self.radar_sensor == 0:
                 radar_hours = depth_hours
 
         audio_hours, depth_hours, radar_hours = set(audio_hours), set(depth_hours), set(radar_hours)

@@ -21,6 +21,9 @@ if args.env == 'nx':
     data_path = f"/mnt/hdd_nas/AD-Data/{args.id}/data"
     if args.id.startswith("2-NX"):
         data_path = f"/pm1733_x3/AD-Data/{args.id}/data"
+    # special case
+    if args.id == "2-NX-12":
+        data_path = f"/pm1733_x3/AD-Data/{args.id}"
     ad = NxAlzheimerDataset(root=data_path, target_path=save_path, logger=logger, num_workers=args.workers)
 elif args.env == 'rpi':
     data_path = f"/mnt/hdd_nas/AD-Data/{args.id}"

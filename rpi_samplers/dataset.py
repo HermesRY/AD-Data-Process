@@ -73,28 +73,44 @@ class RpiAlzheimerDataset:
         This function iterates all the directories under path
         and select those are between start_time and end_time
         """
-        start_time = datetime.strptime(self.start_time, '%H:%M:%S').time()
-        end_time = datetime.strptime(self.end_time, '%H:%M:%S').time()
-        filtered_hours = [d for d in timestamp 
-                          if start_time <= datetime.strptime(d, '%Y-%m-%d_%H-%M-%S').time() <= end_time]
+        try:
+            start_time = datetime.strptime(self.start_time, '%H:%M:%S').time()
+            end_time = datetime.strptime(self.end_time, '%H:%M:%S').time()
+            filtered_hours = [d for d in timestamp
+                              if start_time <= datetime.strptime(d, '%Y-%m-%d_%H-%M-%S').time() <= end_time]
+        except FileNotFoundError:
+            self.logger.warning("No audio sensor found in {:s}".format(self.root))
+            filtered_hours = []
         return filtered_hours
 
     def _check_common_hours(self):
         """
         Select the hours that all the three sensors have logged something.
         """
-        audio_strs = [d for d in os.listdir(self.audio_root) if d.endswith('.wav')]
-        audio_strs = [item.split('_')[-1].split('.')[0] for item in audio_strs]
-        audio_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in audio_strs]
-        audio_strs = [item.strftime('%Y-%m-%d_%H-00-00') for item in audio_ts]
+        try:
+            audio_strs = [d for d in os.listdir(self.audio_root) if d.endswith('.wav')]
+            audio_strs = [item.split('_')[-1].split('.')[0] for item in audio_strs]
+            audio_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in audio_strs]
+            audio_strs = [item.strftime('%Y-%m-%d_%H-00-00') for item in audio_ts]
+        except FileNotFoundError:
+            self.logger.warning("No audio sensor found in {:s}".format(self.root))
+            audio_strs = []
 
-        depth_strs = [d for d in os.listdir(self.depth_root) if os.path.isdir(os.path.join(self.depth_root, d))]
-        depth_strs = [d for d in depth_strs if len(os.listdir(os.path.join(self.depth_root, d))) > 0]
+        try:
+            depth_strs = [d for d in os.listdir(self.depth_root) if os.path.isdir(os.path.join(self.depth_root, d))]
+            depth_strs = [d for d in depth_strs if len(os.listdir(os.path.join(self.depth_root, d))) > 0]
+        except FileNotFoundError:
+            self.logger.warning("No depth sensor found in {:s}".format(self.root))
+            depth_strs = []
 
-        radar_strs = [d for d in os.listdir(self.radar_root) if d.endswith('.pkl')]
-        radar_strs = [item.split('_')[-1].split('.')[0] for item in radar_strs]
-        radar_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in radar_strs]
-        radar_strs = [item.strftime('%Y-%m-%d_%H-00-00') for item in radar_ts]
+        try:
+            radar_strs = [d for d in os.listdir(self.radar_root) if d.endswith('.pkl')]
+            radar_strs = [item.split('_')[-1].split('.')[0] for item in radar_strs]
+            radar_ts = [datetime.strptime(d, '%Y-%m-%d-%H-%M-%S') for d in radar_strs]
+            radar_strs = [item.strftime('%Y-%m-%d_%H-00-00') for item in radar_ts]
+        except FileNotFoundError:
+            self.logger.warning("No radar sensor found in {:s}".format(self.root))
+            radar_strs = []
 
         audio_hours, depth_hours, radar_hours = self._filter_hour_directories(audio_strs), \
                                                 self._filter_hour_directories(depth_strs), \

@@ -44,14 +44,14 @@ class NxAlzheimerDataset:
                 os.makedirs(path)
             del path
 
-    def _init_sensors(self, audio_path, depth_path, radar_path, hour_datetime):
+    def _init_sensors(self, audio_path, depth_path, radar_path):
         audio = depth = radar = None
         if self.audio_sensor:
-            audio = AudioSampler(audio_path, hour_datetime, self.target_path, self.logger, self.label_length)
+            audio = AudioSampler(audio_path, self.target_path, self.logger, self.label_length)
         if self.depth_sensor:
             depth = DepthSampler(depth_path, self.target_path, self.logger, self.label_length)
         if self.radar_sensor:
-            radar = RadarSampler(radar_path, hour_datetime, self.target_path, self.logger, self.label_length)
+            radar = RadarSampler(radar_path, self.target_path, self.logger, self.label_length)
         return audio, depth, radar
 
     @staticmethod

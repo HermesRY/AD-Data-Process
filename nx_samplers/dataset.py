@@ -73,13 +73,17 @@ class NxAlzheimerDataset:
         This function iterates all the directories under path
         and select those are between start_time and end_time
         """
-        hour_strs = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
-        # filter out empty folders
-        hour_strs = [d for d in hour_strs if len(os.listdir(os.path.join(path, d))) > 0]
-        start_time = datetime.strptime(self.start_time, '%H:%M:%S').time()
-        end_time = datetime.strptime(self.end_time, '%H:%M:%S').time()
-        filtered_hours = [d for d in hour_strs if
-                          start_time <= datetime.strptime(d, '%Y-%m-%d_%H-%M-%S').time() <= end_time]
+        try:
+            hour_strs = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+            # filter out empty folders
+            hour_strs = [d for d in hour_strs if len(os.listdir(os.path.join(path, d))) > 0]
+            start_time = datetime.strptime(self.start_time, '%H:%M:%S').time()
+            end_time = datetime.strptime(self.end_time, '%H:%M:%S').time()
+            filtered_hours = [d for d in hour_strs if
+                              start_time <= datetime.strptime(d, '%Y-%m-%d_%H-%M-%S').time() <= end_time]
+        except FileNotFoundError:
+            self.logger.error(f"Path {path} not found!")
+            filtered_hours = []
         return filtered_hours
 
     def _check_common_hours(self):

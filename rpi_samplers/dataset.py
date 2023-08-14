@@ -19,6 +19,11 @@ class RpiAlzheimerDataset:
         self.num_workers = num_workers
         self.label_length = self.chunk_size * self.label_rate
 
+        # sensor status
+        self.depth_sensor = False
+        self.radar_sensor = False
+        self.audio_sensor = False
+
         self.audio_root = os.path.join(self.root, 'audio')
         self.depth_root = os.path.join(self.root, 'depth')
         self.radar_root = os.path.join(self.root, 'radar')
@@ -40,19 +45,27 @@ class RpiAlzheimerDataset:
             del path
 
     def _init_sensors(self, audio_path, depth_path, radar_path, hour_datetime):
-        audio = AudioSampler(audio_path, hour_datetime, self.target_path, self.logger, self.label_length)
-        depth = DepthSampler(depth_path, self.target_path, self.logger, self.label_length)
-        radar = RadarSampler(radar_path, hour_datetime, self.target_path, self.logger, self.label_length)
+        audio = depth = radar = None
+        if self.audio_sensor:
+            audio = AudioSampler(audio_path, hour_datetime, self.target_path, self.logger, self.label_length)
+        if self.depth_sensor:
+            depth = DepthSampler(depth_path, self.target_path, self.logger, self.label_length)
+        if self.radar_sensor:
+            radar = RadarSampler(radar_path, hour_datetime, self.target_path, self.logger, self.label_length)
         return audio, depth, radar
 
     @staticmethod
     def _start_sample(audio, depth, radar, selected_times):
-        p1 = Process(target=audio.sample, args=(selected_times,))
-        p2 = Process(target=depth.sample, args=(selected_times,))
-        p3 = Process(target=radar.sample, args=(selected_times,))
-        for p in [p1, p2, p3]:
+        p_list = []
+        if audio is not None:
+            p_list.append(Process(target=audio.sample, args=(selected_times,)))
+        if depth is not None:
+            p_list.append(Process(target=depth.sample, args=(selected_times,)))
+        if radar is not None:
+            p_list.append(Process(target=radar.sample, args=(selected_times,)))
+        for p in p_list:
             p.start()
-        for p in [p1, p2, p3]:
+        for p in p_list:
             p.join()
 
     def _filter_hour_directories(self, timestamp):
@@ -86,6 +99,20 @@ class RpiAlzheimerDataset:
         audio_hours, depth_hours, radar_hours = self._filter_hour_directories(audio_strs), \
                                                 self._filter_hour_directories(depth_strs), \
                                                 self._filter_hour_directories(radar_strs)
+
+        if len(depth_hours) != 0:
+            self.depth_sensor = True
+        if len(radar_hours) != 0:
+            self.radar_sensor = True
+        if len(audio_hours) != 0:
+            self.audio_sensor = True
+
+        # if there is no audio or radar, use depth hours
+        if len(depth_hours) != 0:
+            if len(audio_hours) == 0:
+                audio_hours = depth_hours
+            if len(radar_hours) == 0:
+                radar_hours = depth_hours
 
         audio_hours, depth_hours, radar_hours = set(audio_hours), set(depth_hours), set(radar_hours)
         common_hours = audio_hours.intersection(depth_hours, radar_hours)
@@ -134,8 +161,21 @@ class RpiAlzheimerDataset:
         with Pool(processes=3) as pool:
             audio, depth, radar = pool.starmap(self._init_sensors, [(self.audio_root, depth_path, self.radar_root, hour_dt)])[0]
 
-        start_time = audio.start_time + depth.start_time + radar.start_time
-        end_time = audio.end_time + depth.end_time + radar.end_time
+        if self.depth_sensor:
+            if self.audio_sensor and self.radar_sensor:
+                start_time = audio.start_time + depth.start_time + radar.start_time
+                end_time = audio.end_time + depth.end_time + radar.end_time
+            elif not self.audio_sensor:
+                self.logger.warning("No audio sensor found in {:s}".format(self.root))
+                start_time = depth.start_time + depth.start_time + radar.start_time
+                end_time = depth.end_time + depth.end_time + radar.end_time
+            elif not self.radar_sensor:
+                self.logger.warning("No radar sensor found in {:s}".format(self.root))
+                start_time = audio.start_time + depth.start_time + depth.start_time
+                end_time = audio.end_time + depth.end_time + depth.end_time
+        else:
+            self.logger.error("No depth sensor found in {:s}".format(self.root))
+            return
 
         working_periods, working_time = self._find_all_working_regions(start_time, end_time)
         sample_size = self.chunk_size * self.sample_rate

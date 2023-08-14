@@ -15,12 +15,13 @@ logging.basicConfig(filename=f"{args.id}.log", format='%(asctime)s %(levelname)-
 logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 
-data_path = f"/mnt/hdd_nas/AD-Data/{args.id}/data"
 save_path = f"/pm1733_x3/sample_li/{args.id}"
 
 if args.env == 'nx':
+    data_path = f"/mnt/hdd_nas/AD-Data/{args.id}/data"
     ad = NxAlzheimerDataset(root=data_path, target_path=save_path, logger=logger, num_workers=args.workers)
 elif args.env == 'rpi':
+    data_path = f"/mnt/hdd_nas/AD-Data/{args.id}"
     ad = RpiAlzheimerDataset(root=data_path, target_path=save_path, logger=logger, num_workers=args.workers)
 
 ad.run()

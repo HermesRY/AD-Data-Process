@@ -101,7 +101,7 @@ class NxAlzheimerDataset:
         if self.depth_sensor:
             if not self.audio_sensor:
                 audio_hours = depth_hours
-            if not self.radar_sensor == 0:
+            if not self.radar_sensor:
                 radar_hours = depth_hours
 
         audio_hours, depth_hours, radar_hours = set(audio_hours), set(depth_hours), set(radar_hours)

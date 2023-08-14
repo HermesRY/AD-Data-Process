@@ -181,6 +181,10 @@ class RpiAlzheimerDataset:
             if self.audio_sensor and self.radar_sensor:
                 start_time = audio.start_time + depth.start_time + radar.start_time
                 end_time = audio.end_time + depth.end_time + radar.end_time
+            elif not self.audio_sensor and not self.radar_sensor:
+                self.logger.warning("No audio and radar sensor found in {:s}".format(self.root))
+                start_time = depth.start_time + depth.start_time + depth.start_time
+                end_time = depth.end_time + depth.end_time + depth.end_time
             elif not self.audio_sensor:
                 self.logger.warning("No audio sensor found in {:s}".format(self.root))
                 start_time = depth.start_time + depth.start_time + radar.start_time

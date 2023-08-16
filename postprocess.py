@@ -122,11 +122,27 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=8):
     cur_depth_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'depth')) if item.endswith('.mp4')]
     cur_radar_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'radar')) if item.endswith('.npy')]
     cur_audio_ts = [item.split('.')[0] for item in os.listdir(os.path.join(cur_root, 'audio')) if item.endswith('.npy')]
-    audio_ts, depth_ts, radar_ts = set(cur_audio_ts), set(cur_depth_ts), set(cur_radar_ts)
-    common_ts = audio_ts.intersection(depth_ts, radar_ts)
-    if yolo is not None:
-        common_ts = common_ts.intersection(set(yolo))
-    common_ts = list(common_ts)
+    if len(cur_depth_ts) != 0 and len(cur_radar_ts) != 0 and len(cur_audio_ts) != 0:
+        audio_ts, depth_ts, radar_ts = set(cur_audio_ts), set(cur_depth_ts), set(cur_radar_ts)
+        common_ts = audio_ts.intersection(depth_ts, radar_ts)
+        if yolo is not None:
+            common_ts = common_ts.intersection(set(yolo))
+        common_ts = list(common_ts)
+    elif len(cur_depth_ts) != 0 and len(cur_radar_ts) != 0:
+        depth_ts, radar_ts = set(cur_depth_ts), set(cur_radar_ts)
+        common_ts = depth_ts.intersection(radar_ts)
+        common_ts = list(common_ts)
+    elif len(cur_depth_ts) != 0 and len(cur_audio_ts) != 0:
+        depth_ts, audio_ts = set(cur_depth_ts), set(cur_audio_ts)
+        common_ts = depth_ts.intersection(audio_ts)
+        common_ts = list(common_ts)
+    elif len(cur_depth_ts) != 0:
+        common_ts = set(cur_depth_ts)
+        common_ts = list(common_ts)
+    else:
+        print(f"Failed to find any data under {cur_root}")
+        return
+
     common_ts = sorted(common_ts, key=lambda x: datetime.strptime(x, '%Y-%m-%d_%H-%M-%S'))
     df = pd.DataFrame({'id': np.arange(len(common_ts)), 'timestamp': common_ts})
     df.to_csv(os.path.join(target_root, "timestamp.csv"), index=False)

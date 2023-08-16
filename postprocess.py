@@ -66,21 +66,51 @@ def _make_modality_path(root):
         if not os.path.exists(os.path.join(root, m)):
             os.makedirs(os.path.join(root, m))
 
+
 def _process_single_time(source_root, target_root, timestamp, id):
+    audio_path = os.path.join(source_root, 'audio')
+    depth_path = os.path.join(source_root, 'depth')
+    radar_path = os.path.join(source_root, 'radar')
     try:
-        audio_path = os.path.join(source_root, 'audio')
-        depth_path = os.path.join(source_root, 'depth')
-        radar_path = os.path.join(source_root, 'radar')
         audio_file = np.load(os.path.join(audio_path, timestamp+'.npy'))
+    except Exception as e:
+        audio_file = None
+        print(f"Failed to load {timestamp} audio data under {source_root}. Error message {e}")
+    try:
         radar_file = np.load(os.path.join(radar_path, timestamp+'.npy'))
         radar_file = process_radar(radar_file, radar_shape)
+    except Exception as e:
+        radar_file = None
+        print(f"Failed to load {timestamp} radar data under {source_root}. Error message {e}")
+    try:
         depth_features = process_video(os.path.join(depth_path, timestamp+'.mp4'))
-        if audio_file.shape == audio_shape and radar_file.shape == radar_shape and depth_features.shape == depth_shape:
-            np.save(os.path.join(target_root, 'audio', str(id)+'.npy'), audio_file)
-            np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
-            np.save(os.path.join(target_root, 'radar', str(id)+'.npy'), radar_file)
-        else:
-            print(f"Shape not equal! Depth {depth_features.shape}; Radar {radar_file.shape}; Audio: {audio_file.shape}")
+    except Exception as e:
+        depth_features = None
+        print(f"Failed to load {timestamp} depth data under {source_root}. Error message {e}")
+    try:
+        if depth_features is not None:
+            if audio_file is not None and radar_file is not None:
+                if audio_file.shape == audio_shape and radar_file.shape == radar_shape and depth_features.shape == depth_shape:
+                    np.save(os.path.join(target_root, 'audio', str(id)+'.npy'), audio_file)
+                    np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
+                    np.save(os.path.join(target_root, 'radar', str(id)+'.npy'), radar_file)
+                else:
+                    print(f"Shape not equal! Depth {depth_features.shape}; Radar {radar_file.shape}; Audio: {audio_file.shape}")
+            elif audio_file is not None:
+                if audio_file.shape == audio_shape and depth_features.shape == depth_shape:
+                    np.save(os.path.join(target_root, 'audio', str(id)+'.npy'), audio_file)
+                    np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
+                else:
+                    print(f"Shape not equal! Depth {depth_features.shape}; Audio {audio_file.shape}")
+            elif radar_file is not None:
+                if radar_file.shape == radar_shape and depth_features.shape == depth_shape:
+                    np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
+                    np.save(os.path.join(target_root, 'radar', str(id)+'.npy'), radar_file)
+                else:
+                    print(f"Shape not equal! Depth {depth_features.shape}; Radar {radar_file.shape}")
+            else:
+                if depth_features.shape == depth_shape:
+                    np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
     except Exception as e:
         print(f"Failed to process {timestamp} data under {source_root}. Error message {e}")
 
@@ -107,7 +137,6 @@ def _process_single_subject(cur_root, target_root, yolo=None, workers=8):
     
 
 def run():
-    filter_idx = [item for item in os.listdir(filter_path) if os.path.isdir(os.path.join(filter_path, item))]
     sample_idx = [item for item in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, item)) and item != 'filtered_videos']
     process = []
     for id in sample_idx:
@@ -117,7 +146,7 @@ def run():
         cur_unlabel_dir = os.path.join(data_path, id, 'unlabel')
         target_unlabel_dir = os.path.join(target_path, id, 'unlabel')
         process.append(Process(target=_process_single_subject, args=(cur_label_dir, target_label_dir, yolo_ts)))
-        #process.append(Process(target=_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir, yolo_ts)))
+        # process.append(Process(target=_process_single_subject, args=(cur_unlabel_dir, target_unlabel_dir, yolo_ts)))
     for p in process:
         p.start()
     for p in process:

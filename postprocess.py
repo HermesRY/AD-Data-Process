@@ -75,13 +75,11 @@ def _process_single_time(source_root, target_root, timestamp, id):
         audio_file = np.load(os.path.join(audio_path, timestamp+'.npy'))
     except Exception as e:
         audio_file = None
-        print(f"Failed to load {timestamp} audio data under {source_root}. Error message {e}")
     try:
         radar_file = np.load(os.path.join(radar_path, timestamp+'.npy'))
         radar_file = process_radar(radar_file, radar_shape)
     except Exception as e:
         radar_file = None
-        print(f"Failed to load {timestamp} radar data under {source_root}. Error message {e}")
     try:
         depth_features = process_video(os.path.join(depth_path, timestamp+'.mp4'))
     except Exception as e:

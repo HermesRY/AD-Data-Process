@@ -111,6 +111,8 @@ def _process_single_time(source_root, target_root, timestamp, id):
             else:
                 if depth_features.shape == depth_shape:
                     np.save(os.path.join(target_root, 'depth', str(id)+'.npy'), depth_features)
+                else:
+                    print(f"Shape not equal! Depth {depth_features.shape}")
     except Exception as e:
         print(f"Failed to process {timestamp} data under {source_root}. Error message {e}")
 

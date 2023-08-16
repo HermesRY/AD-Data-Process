@@ -7,7 +7,7 @@ from . import AudioSampler, DepthSampler, RadarSampler, Pool
 
 class NxAlzheimerDataset:
     def __init__(self, root, target_path, logger, chunk_size=200, sample_rate=.1,
-                 label_rate=.01, start_time="7:00:00", end_time="19:00:00", num_workers=16):
+                 label_rate=.01, start_time="7:00:00", end_time="19:00:00", num_workers=16, depth_only=False):
         self.root = root
         self.target_path = target_path
         self.logger = logger
@@ -18,6 +18,7 @@ class NxAlzheimerDataset:
         self.end_time = end_time
         self.num_workers = num_workers
         self.label_length = self.chunk_size * self.label_rate
+        self.depth_only = depth_only
 
         # sensor status
         self.depth_sensor = False
@@ -100,6 +101,10 @@ class NxAlzheimerDataset:
             self.radar_sensor = True
         if len(audio_hours) >= 100:
             self.audio_sensor = True
+
+        if self.depth_only:
+            self.audio_sensor = False
+            self.radar_sensor = False
 
         # if there is no audio or radar, use depth hours
         if self.depth_sensor:

@@ -3,7 +3,7 @@ import logging
 from nx_samplers import NxAlzheimerDataset
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--workers', type=int, default=32, help='number of workers')
+parser.add_argument('--workers', type=int, default=8, help='number of workers')
 parser.add_argument('--depth_only', action='store_true', help='only depth')
 args = parser.parse_args()
 

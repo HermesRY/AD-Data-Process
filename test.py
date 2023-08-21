@@ -16,10 +16,10 @@ logging.basicConfig(filename=f"{args.id}.log", format='%(asctime)s %(levelname)-
 logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 
-save_path = f"/pm1733_x3/sample_li/{args.id}"
+save_path = f"/pm9a1_x7/sample_li/{args.id}"
 
 if args.env == 'nx':
-    data_path = f"/mnt/hdd_nas/AD-Data/{args.id}/data"
+    data_path = f"/pm1733_x1/AD-Data/batch-3rd/{args.id}/data"
     if args.id.startswith("2-NX"):
         data_path = f"/pm1733_x3/AD-Data/{args.id}/data"
     # special case

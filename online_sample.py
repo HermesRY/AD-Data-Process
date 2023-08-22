@@ -13,8 +13,8 @@ logging.basicConfig(filename=f"sampling.log", format='%(asctime)s %(levelname)-8
 logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 
-save_path = f"/mnt/ssd/sample"
-data_path = f"/mnt/ssd/data"
+save_path = "/mnt/ssd/sample"
+data_path = "/mnt/ssd/data"
 ad = NxAlzheimerDataset(root=data_path, target_path=save_path, logger=logger,
                         num_workers=args.workers, depth_only=args.depth_only)
 

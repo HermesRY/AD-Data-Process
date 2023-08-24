@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import argparse
 import logging
-from multiprocessing import Pool
+from multiprocessing.pool import Pool
 
 logging.basicConfig(filename=f"sampling.log", format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.INFO,

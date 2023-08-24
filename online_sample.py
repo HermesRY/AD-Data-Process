@@ -141,29 +141,32 @@ if __name__ == '__main__':
     parser.add_argument('--depth_only', action='store_true', help='only depth')
     args = parser.parse_args()
 
-    start_time, end_time, start_timestamps = _folder_navigation(data_path)
-    args.start_time = start_time
-    args.end_time = end_time
-    args.start_timestamps = start_timestamps
-    args.root = data_path
-
     if not os.path.exists(save_label_path):
         os.makedirs(save_label_path)
 
-    for start, end in zip(start_time, end_time):
-        if (end - start) > timedelta(seconds=20):
-            duration = int((end - start).total_seconds())
-            selected_times = [
-                (
-                    start + timedelta(seconds=i * 200),
-                    min(start + timedelta(seconds=i * 200 + 20), end),
-                )
-                for i in range(duration // 200 + 2)
-                if start + timedelta(seconds=i * 200) < end
-                   and (
-                           duration % 200 >= 20
-                           or i < duration // 200
-                   )
-            ]
-            sample(args, selected_times)
+    for folder in os.listdir(data_path):
+        cur_path = os.path.join(data_path, folder)
+        if os.path.isdir(cur_path) and len(os.listdir(cur_path)) > 0:
+            start_time, end_time, start_timestamps = _folder_navigation(cur_path)
+            args.start_time = start_time
+            args.end_time = end_time
+            args.start_timestamps = start_timestamps
+            args.root = cur_path
+
+            for start, end in zip(start_time, end_time):
+                if (end - start) > timedelta(seconds=20):
+                    duration = int((end - start).total_seconds())
+                    selected_times = [
+                        (
+                            start + timedelta(seconds=i * 200),
+                            min(start + timedelta(seconds=i * 200 + 20), end),
+                        )
+                        for i in range(duration // 200 + 2)
+                        if start + timedelta(seconds=i * 200) < end
+                           and (
+                                   duration % 200 >= 20
+                                   or i < duration // 200
+                           )
+                    ]
+                    sample(args, selected_times)
 

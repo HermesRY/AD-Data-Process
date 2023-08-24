@@ -115,7 +115,7 @@ def wrap_read_single_file(root, file_timestamp, start, end):
 
 
 def sample(arguments, time_ranges):
-    with Pool(arguments.num_workers) as pool:
+    with Pool(arguments.workers) as pool:
         for start, end in time_ranges:
             idx = 0
             find = False

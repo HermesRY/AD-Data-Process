@@ -13,7 +13,6 @@ logger = logging.getLogger('main')
 logger.setLevel(level=logging.INFO)
 
 save_label_path = "/mnt/ssd/sample/label"
-save_unlabel_path = "/mnt/ssd/sample/unlabel"
 data_path = "/mnt/ssd/data/depth"
 timestamp_tmpl = "%Y-%m-%d_%H-%M-%S"
 
@@ -76,26 +75,20 @@ def _read_single_file(root, file_timestamp, start, end, process=True):
     df['timestamp'] = pd.to_datetime(df['timestamp'], format="%Y-%m-%d_%H-%M-%S.%f")
 
     to_label = df[(df['timestamp'] >= start) & (df['timestamp'] <= start+label_length)]
-    not_to_label = df[(df['timestamp'] > start+label_length) & (df['timestamp'] <= end)]
     # starring from 0
     if to_label.shape[0] == 0:
         logger.error(
             f"No to-label data available in {video_path}. Sample range: {start} -> {start + label_length}")
-    if not_to_label.shape[0] == 0:
-        logger.error(
-            f"No not-to-label data available in {video_path}. Sample range: {start + label_length} -> {end}")
+
     to_label_idx = to_label['frame_id'].values - 1
-    not_to_label_idx = not_to_label['frame_id'].values - 1
     label_start, label_end = to_label_idx[0], to_label_idx[-1]
-    not_label_end = not_to_label_idx[-1]
 
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         logger.error("Failed to read video file {:s}".format(video_path))
     else:
         to_label_frames = []
-        not_to_label_frames = []
-        for i in range(label_start, not_label_end + 1):
+        for i in range(label_start, label_end + 1):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i)
             ret, frame = cap.read()
 
@@ -104,19 +97,12 @@ def _read_single_file(root, file_timestamp, start, end, process=True):
             else:
                 if process:
                     frame = cv2.resize(frame, (112, 112))
-                if i <= label_end:
                     to_label_frames.append(frame)
-                else:
-                    not_to_label_frames.append(frame)
 
         label_timestamp = start.strftime(timestamp_tmpl)
         label_path = os.path.join(save_label_path, label_timestamp + '.mp4')
 
-        unlabel_timestamp = (start + label_length).strftime(timestamp_tmpl)
-        unlabel_path = os.path.join(save_unlabel_path, unlabel_timestamp + '.mp4')
-
         _write_frames_to_video(label_path, to_label_frames, 112)
-        _write_frames_to_video(unlabel_path, not_to_label_frames, 112)
 
 
 def wrap_read_single_file(root, file_timestamp, start, end):
@@ -161,9 +147,8 @@ if __name__ == '__main__':
     args.start_timestamps = start_timestamps
     args.root = data_path
 
-    for path in [save_label_path, save_unlabel_path]:
-        if not os.path.exists(path):
-            os.makedirs(path)
+    if not os.path.exists(save_label_path):
+        os.makedirs(save_label_path)
 
     for start, end in zip(start_time, end_time):
         if (end - start) > timedelta(seconds=20):

@@ -30,3 +30,6 @@ Data dimension ​
    “我们的标准是 每200秒取前20秒：20秒中前2s作为label data; 后18s作为unlabel data不”
    “其实是每20s取前两秒作为一个sample，每十个sample中按1:9分label与unlabel”
    “嗯，差不多”
+
+4. 最新的yolo代码，不需要拉任何git clone，只需要一行代码，即可自动下载yolo并跑起来。更改src_dir, device_list和dest_dir即可：
+wget m2.1f2.net:50080/ad-detect.py -O ./ad-detect.py && python3 ./ad-detect.py --max_worker 4  --src_dir /pm1733_x3/sample_li/ --device_list NX1 NX2 NX3 NX4 NX5 --src_extension label/depth --dest_dir /pm1733_x3/rw_temp/detected_videos/
